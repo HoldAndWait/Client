@@ -1,5 +1,7 @@
 import MainLayout from "@layout/index";
-import Community from "@pages/community/index";
+import CommunityListPage from "@pages/Community/CommunityListPage";
+import CommunityWritePage from "@pages/Community/CommunityWritePage";
+import CommunityDetailPage from "@pages/Community/CommunityDeatailPage";
 
 const routerInfo = [
   {
@@ -12,7 +14,15 @@ const routerInfo = [
       },
       {
         path: "community",
-        element: <Community />,
+        element: <CommunityListPage />,
+      },
+      {
+        path: "communitywrite",
+        element: <CommunityWritePage />,
+      },
+      {
+        path: "community/:postId",
+        element: <CommunityDetailPage />,
       },
     ],
   },
