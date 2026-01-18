@@ -3,14 +3,18 @@ import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <nav className="bg-white shadow-md p-4 flex justify-between items-center px-10">
-      <div className="text-2xl font-black text-blue-600">
-        <Link to="/">Omnicode</Link>
+    <nav className="flex justify-between items-center p-5">
+      <div className="text-[32px] font-bold">
+        <Link to="/">SolveMeUp</Link>
       </div>
-      <div className="space-x-8 font-medium text-gray-700">
-        <Link to="/" className="hover:text-blue-500 transition">홈</Link>
-        <Link to="/community" className="hover:text-blue-500 transition">커뮤니티</Link>
-        <Link to="/mypage" className="hover:text-blue-500 transition">마이페이지</Link>
+      <div className="text-black visited:text-black">
+        <Link to="/problems" className="px-[10px] hover:font-bold">문제</Link>
+        <Link to="/ranking" className="px-[10px] hover:font-bold">랭킹</Link>
+        <Link to="/archive" className="px-[10px] hover:font-bold">아카이브</Link>
+        <Link to="/community" className="px-[10px] hover:font-bold">커뮤니티</Link>
+      </div>
+      <div>
+        <Link to="/mypage" className=""><span class="material-symbols-outlined">account_circle</span></Link>
       </div>
     </nav>
   );

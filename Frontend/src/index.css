@@ -1,7 +1,10 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
+@import "tailwindcss";
 
+
+/*
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -69,4 +72,23 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+*/
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:visited {
+    color: inherit;
+  }
+}
+
+
+@theme {
+  --color-smu-neonlime: #7CFF00;
+  --color-smu-base: #F3F6F9;
+  --color-smu-navy: #3F4864;
+  --color-smu-black: #252A3C;
+  --color-smu-gray: #9EA4B3;
 }
