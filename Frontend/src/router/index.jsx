@@ -2,6 +2,8 @@ import MainLayout from "@layout/index";
 import CommunityListPage from "@pages/Community/CommunityListPage";
 import CommunityWritePage from "@pages/Community/CommunityWritePage";
 import CommunityDetailPage from "@pages/Community/CommunityDeatailPage";
+import ProblemListPage from "@pages/Problems/ProblemListPage";
+import MyPage from "@pages/MyPage/MyPageGate";
 
 const routerInfo = [
   {
@@ -23,6 +25,14 @@ const routerInfo = [
       {
         path: "community/:postId",
         element: <CommunityDetailPage />,
+      },
+      {
+        path: "problems",
+        element: <ProblemListPage />,
+      },
+      {
+        path: "mypage",
+        element: <MyPage />,
       },
     ],
   },
