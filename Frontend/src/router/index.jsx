@@ -2,6 +2,7 @@ import MainLayout from "@layout/index";
 import CommunityListPage from "@pages/Community/CommunityListPage";
 import CommunityWritePage from "@pages/Community/CommunityWritePage";
 import CommunityDetailPage from "@pages/Community/CommunityDeatailPage";
+import MyPage from "@pages/MyPage/MyPageGate";
 
 const routerInfo = [
   {
@@ -23,6 +24,10 @@ const routerInfo = [
       {
         path: "community/:postId",
         element: <CommunityDetailPage />,
+      },
+      {
+        path: "mypage",
+        element: <MyPage />,
       },
     ],
   },
