@@ -32,8 +32,7 @@ jobs:
           context: ./Frontend
           file: ./Frontend/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:dev
+          tags: ghcr.io/solvemeup/client:dev
 
       - name: Deploy to Home Server (frontend only)
         env:
