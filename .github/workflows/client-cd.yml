@@ -49,3 +49,27 @@ jobs:
             docker compose pull frontend
             docker compose up -d frontend
           EOF
+
+      - name: Notify Discord (success)
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          MSG="✅ Frontend CD 성공\n- branch: ${BRANCH}\n- commit: ${SHORT_SHA}\n- actor: ${GITHUB_ACTOR}\n- repo: ${GITHUB_REPOSITORY}"
+          curl -H "Content-Type: application/json" \
+               -d "{\"content\":\"${MSG}\"}" \
+               "$DISCORD_WEBHOOK_URL"
+
+      - name: Notify Discord (failure)
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          MSG="❌ Frontend CD 실패\n- branch: ${BRANCH}\n- commit: ${SHORT_SHA}\n- actor: ${GITHUB_ACTOR}\n- repo: ${GITHUB_REPOSITORY}\n- Actions 로그 확인 필요"
+          curl -H "Content-Type: application/json" \
+               -d "{\"content\":\"${MSG}\"}" \
+               "$DISCORD_WEBHOOK_URL"
