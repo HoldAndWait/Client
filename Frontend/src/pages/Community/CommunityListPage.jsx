@@ -263,6 +263,10 @@ export default function CommunityListPage() {
   const [posts, setPosts] = useState([]);
   const [q, setQ] = useState(""); 
 
+  useEffect(() => {
+    console.log("[CommunityListPage] mounted", new Date().toISOString());
+  }, []);
+
 
   useEffect(() => {
   (async () => {
