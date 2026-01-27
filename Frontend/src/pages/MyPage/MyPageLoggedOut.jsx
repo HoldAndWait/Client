@@ -4,7 +4,7 @@ const MyPageLoggedOut = () => {
 
   const handleGithubLogin = () => {
     // OAuth 시작 url
-    window.location.href = "http://solvemeup.com/oauth2/authorization/github"
+    window.location.href = `${import.meta.env.VITE_API_URL}/oauth2/authorization/github`
   }
 
 
