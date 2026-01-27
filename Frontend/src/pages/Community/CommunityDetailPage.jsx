@@ -25,9 +25,39 @@ export default function CommunityDetailPage() {
   const [debug, setDebug] = useState("INIT");
   const [commentText, setCommentText] = useState("");
 
-  // ✅ 이전 요청을 abort 하기 위해 controller 저장
+  // 이전 요청을 abort 하기 위해 controller 저장
+  // 요청이 여러번 -> success 만 처리할 수 있도록
   const abortRef = useRef(null);
 
+  const [me, setMe] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // 여기는 삭제 처리
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await api.get("/api/users/me");
+        if (cancelled) return;
+
+        // ✅ 응답 형태 방어: res.data 혹은 res.data.data
+        const meObj = res.data?.data ?? res.data ?? null;
+        setMe(meObj);
+      } catch (e) {
+        if (cancelled) return;
+        console.log("[ME] failed", e?.response?.status, e?.response?.data);
+        setMe(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
+  // 여기는 조회
   useEffect(() => {
     if (!postId) return;
 
@@ -88,13 +118,44 @@ export default function CommunityDetailPage() {
       console.log(`[DETAIL] cleanup(abort) reqId=${reqId}`);
     };
   }, [postId]);
-
+  
   const comments = useMemo(() => post?.comments ?? [], [post]);
-
+  
   const commentCount = useMemo(() => {
     if (typeof post?.commentCount === "number") return post.commentCount;
     return comments.length;
   }, [post, comments]);
+
+  const isMine = useMemo(() => {
+    const myId = me?.id ?? me?.userId;
+    const authorId = post?.author?.id ?? post?.authorId;
+    return !!myId && !!authorId && String(myId) === String(authorId);
+  }, [me, post]);
+
+
+  const onClickDelete = async () => {
+    if (!postId) return;
+
+    const ok = window.confirm("정말 삭제할까요? 삭제 후 복구할 수 없습니다.");
+    if (!ok) return;
+
+    setIsDeleting(true);
+    try {
+      await api.delete(`/api/posts/${postId}`);
+      alert("삭제되었습니다.");
+      navigate("/community");
+    } catch (e) {
+      const status = e?.response?.status;
+      const data = e?.response?.data;
+      alert(
+        `삭제 실패 (status=${status ?? "?"})\n` +
+          (data?.message || data?.error || JSON.stringify(data || {}, null, 2) || e.message)
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
 
   if (errMsg) {
     return (
@@ -134,6 +195,8 @@ export default function CommunityDetailPage() {
     );
   }
 
+
+
   const onClickAddComment = () => alert("아직 안됨");
   const onClickLikeComment = () => alert("아직 안됨");
   const onClickDislikeComment = () => alert("아직 안됨");
@@ -151,6 +214,10 @@ export default function CommunityDetailPage() {
           </Link>
           <div className="text-xl font-bold text-gray-800">커뮤니티 게시글</div>
         </div>
+        <div className="text-xs text-gray-400">
+          DEBUG isMine={String(isMine)} | meId={String(me?.id ?? me?.userId ?? "")} | authorId={String(post?.author?.id ?? post?.authorId ?? "")}
+        </div>
+
 
         <div className="rounded-lg border bg-white p-10">
           <div className="flex items-center justify-between">
@@ -177,13 +244,28 @@ export default function CommunityDetailPage() {
                 {commentCount}
               </div>
 
-              <button
-                type="button"
-                className={ghostBtn}
-                onClick={() => navigate(`/community/${postId}/edit`)}
-              >
-                <span className="material-symbols-outlined">edit</span>
-              </button>
+              {isMine ? (
+                <button
+                  type="button"
+                  className={ghostBtn}
+                  onClick={() => navigate(`/community/${postId}/edit`)}
+                  title="수정"
+                >
+                  <span className="material-symbols-outlined">edit</span>
+                </button>
+              ) : null}
+
+              {isMine ? (
+                <button
+                  type="button"
+                  className={ghostBtn}
+                  onClick={onClickDelete}
+                  disabled={isDeleting}
+                  title="삭제"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                </button>
+              ) : null}
             </div>
           </div>
 
