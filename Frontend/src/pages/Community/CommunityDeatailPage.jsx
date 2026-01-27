@@ -1,62 +1,69 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-
-const LS_POSTS = "community_posts_v1";
-
-function loadPosts() {
-  const raw = localStorage.getItem(LS_POSTS);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function savePosts(posts) {
-  localStorage.setItem(LS_POSTS, JSON.stringify(posts));
-}
+import axios from "axios";
 
 const ghostBtn =
-  "bg-transparent p-0 border-0 outline-none focus:outline-none text-gray-500 hover:text-black";
+  "bg-transparent flex items-center gap-1 p-0 border-0 outline-none focus:outline-none text-gray-500 hover:text-black";
+
+function formatKST(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+}
 
 export default function CommunityDetailPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
 
+  const [raw, setRaw] = useState(null);
   const [post, setPost] = useState(null);
-
+  const [errMsg, setErrMsg] = useState("");
+  const [debug, setDebug] = useState("INIT");
 
   const [commentText, setCommentText] = useState("");
 
-
-  const [comments] = useState([
-    {
-      id: "default-1",
-      author: "USERNAME",
-      createdAt: "2024-11-11 18:12",
-      content: "짱 ~",
-      likeCount: 0,
-      dislikeCount: 0,
-    },
-  ]);
-
   useEffect(() => {
-    const posts = loadPosts();
-    const found = posts.find((p) => String(p.id) === String(postId));
-    setPost(found ?? null);
+    if (!postId) return;
+
+    setDebug("EFFECT_STARTED");
+    setErrMsg("");
+
+    (async () => {
+      try {
+        const res = await axios.get(`/api/posts/${postId}`, {
+          withCredentials: true,
+        });
+
+        setDebug("GET_SUCCESS");
+        setRaw(res.data);
+        setPost(res.data ?? null);
+      } catch (e) {
+        setDebug("GET_FAILED");
+        console.log("❌ GET failed:", e?.response?.status, e?.response?.data, e);
+        setErrMsg("게시글을 불러오지 못했습니다.");
+        setPost(null);
+      }
+    })();
   }, [postId]);
 
-  const commentCount = useMemo(() => comments.length, [comments]);
+  // ✅ 댓글은 서버 응답(post.comments)을 사용 (없으면 빈 배열)
+  const comments = useMemo(() => post?.comments ?? [], [post]);
 
-  if (!post) {
+  // ✅ 댓글 수는 서버 commentCount 우선, 없으면 comments.length
+  const commentCount = useMemo(() => {
+    if (typeof post?.commentCount === "number") return post.commentCount;
+    return comments.length;
+  }, [post, comments]);
+
+  if (errMsg) {
     return (
       <div className="min-h-screen bg-white">
         <main className="mx-auto max-w-5xl px-6 py-10">
-          <div className="py-20 text-center text-gray-500">
-            게시글을 찾을 수 없습니다.
-          </div>
+          <div className="py-20 text-center text-red-600">{errMsg}</div>
           <div className="flex justify-center">
             <button
               className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
@@ -65,37 +72,47 @@ export default function CommunityDetailPage() {
               목록으로
             </button>
           </div>
+
+          <div className="mt-6 text-xs text-gray-500">DEBUG: {debug}</div>
+          <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
+{JSON.stringify(raw, null, 2)}
+          </pre>
         </main>
       </div>
     );
   }
 
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-white">
+        <main className="mx-auto max-w-5xl px-6 py-10">
+          <div className="py-20 text-center text-gray-500">게시글을 찾을 수 없습니다.</div>
+          <div className="flex justify-center">
+            <button
+              className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
+              onClick={() => navigate("/community")}
+            >
+              목록으로
+            </button>
+          </div>
 
-  const updatePostCounts = (updater) => {
-    const posts = loadPosts();
-    const next = posts.map((p) => {
-      if (String(p.id) !== String(postId)) return p;
-      return updater(p);
-    });
-    savePosts(next);
-    const refreshed = next.find((p) => String(p.id) === String(postId));
-    setPost(refreshed ?? null);
-  };
+          <div className="mt-6 text-xs text-gray-500">DEBUG: {debug}</div>
+          <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
+{JSON.stringify(raw, null, 2)}
+          </pre>
+        </main>
+      </div>
+    );
+  }
 
+  const onClickAddComment = () => alert("아직 안됨");
+  const onClickLikeComment = () => alert("아직 안됨");
+  const onClickDislikeComment = () => alert("아직 안됨");
 
-  const onClickAddComment = () => {
-
-    alert("아직 안됨");
-  };
-
-
-  const onClickLikeComment = () => {
-    alert("아직 안됨");
-  };
-
-  const onClickDislikeComment = () => {
-    alert("아직 안됨");
-  };
+  // ✅ author가 객체이므로 nickname 사용
+  const authorNickname = post?.author?.nickname ?? "(author 없음)";
+  const createdAtText = formatKST(post?.createdAt);
+  const updatedAtText = formatKST(post?.updatedAt);
 
   return (
     <div className="min-h-screen bg-white">
@@ -108,56 +125,43 @@ export default function CommunityDetailPage() {
         </div>
 
         <div className="rounded-lg border bg-white p-10">
-
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>👤</span>
-              <span className="font-semibold text-gray-700">{post.author}</span>
-              <span className="ml-3">{post.createdAt}</span>
+              <span className="material-symbols-outlined">face</span>
+              <span className="font-semibold text-gray-700">{authorNickname}</span>
+              <span className="ml-3">{createdAtText}</span>
+              {updatedAtText ? (
+                <span className="ml-2 text-gray-400">(수정 {updatedAtText})</span>
+              ) : null}
             </div>
 
-  
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <button
-                type="button"
-                className={ghostBtn}
-                onClick={() =>
-                  updatePostCounts((p) => ({
-                    ...p,
-                    likeCount: (p.likeCount ?? 0) + 1,
-                  }))
-                }
-              >
-                👍 {post.likeCount ?? 0}
-              </button>
-
-              <button
-                type="button"
-                className={ghostBtn}
-                onClick={() =>
-                  updatePostCounts((p) => ({
-                    ...p,
-                    dislikeCount: (p.dislikeCount ?? 0) + 1,
-                  }))
-                }
-              >
-                👎 {post.dislikeCount ?? 0}
-              </button>
-
-              <div className="text-gray-500">💬 {commentCount}</div>
+              <div className="text-gray-500 flex items-center gap-1">
+                <span className="material-symbols-outlined">thumb_up</span>
+                {post.likeCount ?? 0}
+              </div>
+              <div className="text-gray-500 flex items-center gap-1">
+                <span className="material-symbols-outlined">thumb_down</span>
+                {post.dislikeCount ?? 0}
+              </div>
+              <div className="text-gray-500 flex items-center gap-1">
+                <span className="material-symbols-outlined">comment</span>
+                {commentCount}
+              </div>
 
               <button type="button" className={ghostBtn} onClick={() => alert("수정")}>
-                ✏️
+                <span className="material-symbols-outlined">edit</span>
               </button>
             </div>
           </div>
 
-          <h1 className="mt-4 text-xl font-black text-gray-900">{post.title}</h1>
+          <h1 className="mt-4 text-xl font-black text-gray-900">
+            {post.title ?? "(title 없음)"}
+          </h1>
 
           <div className="mt-6 whitespace-pre-wrap leading-7 text-gray-800">
-            {post.content}
+            {post.content ?? "(content 없음)"}
           </div>
-
 
           <div className="mt-10 flex items-center gap-3">
             <input
@@ -177,36 +181,52 @@ export default function CommunityDetailPage() {
             </button>
           </div>
 
-
           <div className="mt-8 space-y-4">
-            {comments.map((c) => (
-              <div key={c.id} className="rounded-md border p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span>👤</span>
-                    <span className="font-semibold text-gray-700">{c.author}</span>
-                    <span className="ml-2">{c.createdAt}</span>
-                  </div>
+            {comments.length === 0 ? (
+              <div className="py-10 text-center text-gray-500">댓글이 없습니다.</div>
+            ) : (
+              comments.map((c) => {
+                // 서버 댓글 스키마가 아직 확정 전이라 방어적으로
+                const cAuthor =
+                  c?.author?.nickname ?? c?.authorNickname ?? c?.author ?? "익명";
+                const cCreatedAt = formatKST(c?.createdAt);
 
-                
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <button type="button" className={ghostBtn} onClick={onClickLikeComment}>
-                      👍 {c.likeCount ?? 0}
-                    </button>
-                    <button
-                      type="button"
-                      className={ghostBtn}
-                      onClick={onClickDislikeComment}
-                    >
-                      👎 {c.dislikeCount ?? 0}
-                    </button>
-                  </div>
-                </div>
+                return (
+                  <div key={c.id ?? `${cAuthor}-${cCreatedAt}`} className="rounded-md border p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className="material-symbols-outlined">face</span>
+                        <span className="font-semibold text-gray-700">{cAuthor}</span>
+                        <span className="ml-2">{cCreatedAt}</span>
+                      </div>
 
-                <p className="mt-2 text-gray-800">{c.content}</p>
-              </div>
-            ))}
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <button type="button" className={ghostBtn} onClick={onClickLikeComment}>
+                          <span className="material-symbols-outlined">thumb_up</span>
+                          {c.likeCount ?? 0}
+                        </button>
+                        <button
+                          type="button"
+                          className={ghostBtn}
+                          onClick={onClickDislikeComment}
+                        >
+                          <span className="material-symbols-outlined">thumb_down</span>
+                          {c.dislikeCount ?? 0}
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="mt-2 text-gray-800">{c.content ?? ""}</p>
+                  </div>
+                );
+              })
+            )}
           </div>
+
+          <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
+          <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
+{JSON.stringify(raw, null, 2)}
+          </pre>
         </div>
       </main>
     </div>

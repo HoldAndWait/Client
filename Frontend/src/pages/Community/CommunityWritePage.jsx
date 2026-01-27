@@ -1,97 +1,137 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const LS_POSTS = "community_posts_v1";
-
-function loadPosts() {
-  const raw = localStorage.getItem(LS_POSTS);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function savePosts(posts) {
-  localStorage.setItem(LS_POSTS, JSON.stringify(posts));
-}
-
-function todayString() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
+/** ✅ 도메인 고정 + 세션 쿠키 포함 */
+const api = axios.create({
+  baseURL: "http://solvemeup.com",
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
+});
 
 export default function CommunityWritePage() {
-  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const onSubmit = () => {
-    const t = title.trim();
-    const c = content.trim();
-    if (!t || !c) return;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [lastPostRes, setLastPostRes] = useState(null);
+  const [lastGetRes, setLastGetRes] = useState(null);
 
-    const posts = loadPosts();
-    const newPost = {
-      id: String(Date.now()),
-      author: "USERNAME",
-      title: t,
-      content: c,
-      createdAt: todayString(),
-      likeCount: 0,
-      dislikeCount: 0,
-      commentCount: 0,
-    };
+  const submit = async () => {
+    const t = title.trim() || "테스트 제목";
+    const c = content.trim() || "테스트 내용";
 
-    // 최신 글이 위로
-    savePosts([newPost, ...posts]);
-    navigate("/community");
+    setIsSubmitting(true);
+    setErrorMsg("");
+    setLastPostRes(null);
+
+    try {
+      const res = await api.post("/api/posts", { title: t, content: c });
+      setLastPostRes({ status: res.status, data: res.data });
+      console.log("✅ POST OK", res.status, res.data);
+      alert("POST 성공. 아래 응답 확인!");
+    } catch (err) {
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      console.log("❌ POST FAIL", status, data, err);
+
+      setErrorMsg(
+        `POST 실패 (status=${status ?? "?"})\n` +
+          (data?.message || data?.error || JSON.stringify(data || {}, null, 2) || err.message)
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const refetch = async () => {
+    setErrorMsg("");
+    setLastGetRes(null);
+
+    try {
+      const res = await api.get("/api/posts");
+      setLastGetRes({ status: res.status, data: res.data });
+      console.log("✅ GET OK", res.status, res.data);
+      alert("GET 성공. 아래 응답 확인!");
+    } catch (err) {
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      console.log("❌ GET FAIL", status, data, err);
+
+      setErrorMsg(
+        `GET 실패 (status=${status ?? "?"})\n` +
+          (data?.message || data?.error || JSON.stringify(data || {}, null, 2) || err.message)
+      );
+    }
   };
 
   return (
+    
     <div className="min-h-screen bg-white">
+      <div className="mb-2 text-xs text-red-600">
+        WRITE DEBUG BUILD: 2026-01-27  (v999)
+      </div>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <div className="mb-10 text-xl font-bold text-gray-700">커뮤니티 글쓰기</div>
+        <div className="mb-6 text-xl font-bold text-gray-700">커뮤니티 글쓰기 (디버그 모드)</div>
 
-        <div className="p-10">
+        <div className="p-6 rounded-lg border border-gray-200">
           <label className="block text-base font-bold text-gray-800">제목</label>
-          <div className="mt-3">
-            <input
-              className="h-11 w-full rounded-md border border-gray-300 px-4 text-sm outline-none focus:border-gray-400"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+          <input
+            className="mt-2 h-11 w-full rounded-md border border-gray-300 px-4 text-sm outline-none focus:border-gray-400"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={isSubmitting}
+          />
+
+          <label className="mt-6 block text-base font-bold text-gray-800">내용</label>
+          <textarea
+            rows={8}
+            className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-400"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            disabled={isSubmitting}
+          />
+
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={submit}
+              disabled={isSubmitting}
+              className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold hover:bg-gray-300 disabled:opacity-60"
+            >
+              {isSubmitting ? "등록 중..." : "POST /api/posts"}
+            </button>
+
+            <button
+              type="button"
+              onClick={refetch}
+              className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold hover:bg-gray-300"
+            >
+              GET /api/posts 재조회
+            </button>
           </div>
 
-          <label className="mt-10 block text-base font-bold text-gray-800">내용</label>
-          <div className="mt-3">
-            <textarea
-              rows={12}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-gray-400"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-          </div>
+          {errorMsg ? (
+            <pre className="mt-6 whitespace-pre-wrap rounded-md border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+              {errorMsg}
+            </pre>
+          ) : null}
 
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <button
-              onClick={onSubmit}
-              className="min-w-[90px] rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
-            >
-              등록
-            </button>
-            <button
-              onClick={() => navigate(-1)}
-              className="min-w-[90px] rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
-            >
-              취소
-            </button>
+          <div className="mt-6 grid gap-4">
+            <div>
+              <div className="mb-2 text-sm font-bold text-gray-700">POST 응답</div>
+              <pre className="overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
+                {JSON.stringify(lastPostRes, null, 2)}
+              </pre>
+            </div>
+
+            <div>
+              <div className="mb-2 text-sm font-bold text-gray-700">GET 응답</div>
+              <pre className="overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
+                {JSON.stringify(lastGetRes, null, 2)}
+              </pre>
+            </div>
           </div>
         </div>
       </main>
