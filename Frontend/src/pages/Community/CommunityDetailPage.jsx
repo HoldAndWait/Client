@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "@api/api.js";
 
 const ghostBtn =
   "bg-transparent flex items-center gap-1 p-0 border-0 outline-none focus:outline-none text-gray-500 hover:text-black";
@@ -23,37 +23,74 @@ export default function CommunityDetailPage() {
   const [post, setPost] = useState(null);
   const [errMsg, setErrMsg] = useState("");
   const [debug, setDebug] = useState("INIT");
-
   const [commentText, setCommentText] = useState("");
+
+  // ✅ 이전 요청을 abort 하기 위해 controller 저장
+  const abortRef = useRef(null);
 
   useEffect(() => {
     if (!postId) return;
+
+    // ✅ 이전 요청이 살아있으면 중단
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const reqId = `${postId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    console.log(`[DETAIL] start reqId=${reqId} postId=${postId}`);
 
     setDebug("EFFECT_STARTED");
     setErrMsg("");
 
     (async () => {
       try {
-        const res = await axios.get(`/api/posts/${postId}`, {
-          withCredentials: true,
+        const res = await api.get(`/api/posts/${postId}`, {
+          signal: controller.signal, // ✅ axios(v1+) abort 지원
         });
+
+        console.log(`[DETAIL] success reqId=${reqId} status=${res.status}`);
+
+        // ✅ 이 요청이 이미 abort 되었으면 반영 X
+        if (controller.signal.aborted) return;
 
         setDebug("GET_SUCCESS");
         setRaw(res.data);
         setPost(res.data ?? null);
+        setErrMsg("");
       } catch (e) {
-        setDebug("GET_FAILED");
-        console.log("❌ GET failed:", e?.response?.status, e?.response?.data, e);
-        setErrMsg("게시글을 불러오지 못했습니다.");
+        // ✅ abort/취소는 "실패"로 처리하지 않음
+        const aborted =
+          controller.signal.aborted ||
+          e?.code === "ERR_CANCELED" ||
+          e?.name === "CanceledError";
+
+        if (aborted) {
+          console.log(`[DETAIL] aborted reqId=${reqId}`);
+          return;
+        }
+
+        const status = e?.response?.status;
+        const data = e?.response?.data;
+        console.log(`[DETAIL] fail reqId=${reqId} status=${status}`, data);
+
+        setDebug(`GET_FAILED_${status ?? "?"}`);
+        setErrMsg(`게시글을 불러오지 못했습니다. (status=${status ?? "?"})`);
+        setRaw(data ?? null);
         setPost(null);
       }
     })();
+
+    // ✅ cleanup에서 해당 요청 abort
+    return () => {
+      controller.abort();
+      console.log(`[DETAIL] cleanup(abort) reqId=${reqId}`);
+    };
   }, [postId]);
 
-  // ✅ 댓글은 서버 응답(post.comments)을 사용 (없으면 빈 배열)
   const comments = useMemo(() => post?.comments ?? [], [post]);
 
-  // ✅ 댓글 수는 서버 commentCount 우선, 없으면 comments.length
   const commentCount = useMemo(() => {
     if (typeof post?.commentCount === "number") return post.commentCount;
     return comments.length;
@@ -63,7 +100,7 @@ export default function CommunityDetailPage() {
     return (
       <div className="min-h-screen bg-white">
         <main className="mx-auto max-w-5xl px-6 py-10">
-          <div className="py-20 text-center text-red-600">{errMsg}</div>
+          <div className="py-20 text-center text-red-600 whitespace-pre-wrap">{errMsg}</div>
           <div className="flex justify-center">
             <button
               className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
@@ -75,7 +112,7 @@ export default function CommunityDetailPage() {
 
           <div className="mt-6 text-xs text-gray-500">DEBUG: {debug}</div>
           <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
-{JSON.stringify(raw, null, 2)}
+            {JSON.stringify(raw, null, 2)}
           </pre>
         </main>
       </div>
@@ -86,19 +123,11 @@ export default function CommunityDetailPage() {
     return (
       <div className="min-h-screen bg-white">
         <main className="mx-auto max-w-5xl px-6 py-10">
-          <div className="py-20 text-center text-gray-500">게시글을 찾을 수 없습니다.</div>
-          <div className="flex justify-center">
-            <button
-              className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
-              onClick={() => navigate("/community")}
-            >
-              목록으로
-            </button>
-          </div>
+          <div className="py-20 text-center text-gray-500">불러오는 중...</div>
 
           <div className="mt-6 text-xs text-gray-500">DEBUG: {debug}</div>
           <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
-{JSON.stringify(raw, null, 2)}
+            {JSON.stringify(raw, null, 2)}
           </pre>
         </main>
       </div>
@@ -109,7 +138,6 @@ export default function CommunityDetailPage() {
   const onClickLikeComment = () => alert("아직 안됨");
   const onClickDislikeComment = () => alert("아직 안됨");
 
-  // ✅ author가 객체이므로 nickname 사용
   const authorNickname = post?.author?.nickname ?? "(author 없음)";
   const createdAtText = formatKST(post?.createdAt);
   const updatedAtText = formatKST(post?.updatedAt);
@@ -149,7 +177,11 @@ export default function CommunityDetailPage() {
                 {commentCount}
               </div>
 
-              <button type="button" className={ghostBtn} onClick={() => alert("수정")}>
+              <button
+                type="button"
+                className={ghostBtn}
+                onClick={() => navigate(`/community/${postId}/edit`)}
+              >
                 <span className="material-symbols-outlined">edit</span>
               </button>
             </div>
@@ -186,7 +218,6 @@ export default function CommunityDetailPage() {
               <div className="py-10 text-center text-gray-500">댓글이 없습니다.</div>
             ) : (
               comments.map((c) => {
-                // 서버 댓글 스키마가 아직 확정 전이라 방어적으로
                 const cAuthor =
                   c?.author?.nickname ?? c?.authorNickname ?? c?.author ?? "익명";
                 const cCreatedAt = formatKST(c?.createdAt);
@@ -205,11 +236,7 @@ export default function CommunityDetailPage() {
                           <span className="material-symbols-outlined">thumb_up</span>
                           {c.likeCount ?? 0}
                         </button>
-                        <button
-                          type="button"
-                          className={ghostBtn}
-                          onClick={onClickDislikeComment}
-                        >
+                        <button type="button" className={ghostBtn} onClick={onClickDislikeComment}>
                           <span className="material-symbols-outlined">thumb_down</span>
                           {c.dislikeCount ?? 0}
                         </button>
@@ -225,7 +252,7 @@ export default function CommunityDetailPage() {
 
           <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
           <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
-{JSON.stringify(raw, null, 2)}
+            {JSON.stringify(raw, null, 2)}
           </pre>
         </div>
       </main>

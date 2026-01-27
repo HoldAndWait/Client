@@ -229,14 +229,10 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-
-console.log("✅ MODULE LOADED:", import.meta.url);
+import api from "@api/api.js";
 
 
 export default function CommunityListPage() {
-  console.log("🔥 CommunityListPage FILE LOADED (REAL)");
-  console.log("🔥 RENDER:", import.meta.url);
 
   const navigate = useNavigate();
   const [raw, setRaw] = useState(null);
@@ -246,16 +242,11 @@ export default function CommunityListPage() {
 
 
   useEffect(() => {
-    console.log("[CommunityListPage] mounted", new Date().toISOString());
-  }, []);
-
-  useEffect(() => {
     setDebug("EFFECT_STARTED");
-    console.log("✅ effect started: GET /api/posts");
 
     (async () => {
       try {
-        const res = await axios.get("/api/posts", { withCredentials: true });
+        const res = await api.get("/api/posts");
         setDebug("GET_SUCCESS");
         console.log("✅ GET status:", res.status);
         console.log("✅ GET data:", res.data);
@@ -286,7 +277,9 @@ export default function CommunityListPage() {
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6 flex items-center justify-between">
+          
           <div className="text-xl font-bold text-gray-700">커뮤니티</div>
+
           <button
             className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold"
             onClick={() => navigate("/communitywrite")}
