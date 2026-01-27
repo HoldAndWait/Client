@@ -1,16 +1,19 @@
-import React, { useMemo, useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import  api  from "@api/api.js";
+import { useNavigate } from "react-router-dom";
+
 
 export default function CommunityWritePage() {
+  // 1) 폼 입력값 상태 (제목/내용)
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-
+  // 2) UI 상태 (로딩/에러)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [lastPostRes, setLastPostRes] = useState(null);
-  const [lastGetRes, setLastGetRes] = useState(null);
-  const [isLoadingGet, setIsLoadingGet] = useState(false);
+  // const [lastPostRes, setLastPostRes] = useState(null);
+  // const [lastGetRes, setLastGetRes] = useState(null);
+  // const [isLoadingGet, setIsLoadingGet] = useState(false);
+  const navigate = useNavigate();
 
 
   const submit = async () => {
@@ -19,16 +22,21 @@ export default function CommunityWritePage() {
       content: content.trim() || "테스트 게시물 내용 입니다.",
     };
 
+    if (!body.title || !body.content) {
+      setErrorMsg("제목과 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    // 요청 시작: 로딩 ON / 에러 초기화
     setIsSubmitting(true);
     setErrorMsg("");
-    setLastPostRes(null);
-    console.log("WRITE baseURL =", api.defaults.baseURL);
-
+    //setLastPostRes(null);
 
     try {
+      // 등록 요청
       const res = await api.post("/api/posts", body);
-      setLastPostRes({ ok: true, status: res.status, data: res.data, sentBody: body });
-      alert("POST 성공. 아래 응답 확인!");
+      //setLastPostRes({ ok: true, status: res.status, data: res.data, sentBody: body });
+      navigate("/community");
     } catch (err) {
       const status = err?.response?.status;
       const data = err?.response?.data;
@@ -37,19 +45,19 @@ export default function CommunityWritePage() {
         `POST 실패 (status=${status ?? "?"})\n` +
           (data?.message || data?.error || JSON.stringify(data || {}, null, 2) || err.message)
       );
-    } finally {
+    } finally { // 요청 종료: 로딩 OFF
       setIsSubmitting(false);
     }
   };
 
   const refetch = async () => {
-    setIsLoadingGet(true);
+    //setIsLoadingGet(true);
     setErrorMsg("");
-    setLastGetRes(null);
+    //setLastGetRes(null);
 
     try {
       const res = await api.get("/api/posts");
-      setLastGetRes({ ok: true, status: res.status, data: res.data });
+      //setLastGetRes({ ok: true, status: res.status, data: res.data });
       alert("GET 성공. 아래 응답 확인!");
     } catch (err) {
       const status = err?.response?.status;
@@ -60,18 +68,18 @@ export default function CommunityWritePage() {
           (data?.message || data?.error || JSON.stringify(data || {}, null, 2) || err.message)
       );
     } finally {
-      setIsLoadingGet(false);
+      //setIsLoadingGet(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-white">
-
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6 text-xl font-bold text-gray-700">
-          커뮤니티 글쓰기 (디버그 모드)
+          커뮤니티 글쓰기
         </div>
 
+        {/* 폼 */}
         <div className="rounded-lg border border-gray-200 p-6">
           <label className="block text-base font-bold text-gray-800">제목</label>
           <input
@@ -99,16 +107,24 @@ export default function CommunityWritePage() {
               disabled={isSubmitting}
               className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold hover:bg-gray-300 disabled:opacity-60"
             >
-              {isSubmitting ? "등록 중..." : "POST /api/posts"}
+              {isSubmitting ? "등록 중..." : "등록"}
             </button>
 
-            <button
+            {/* <button
               type="button"
               onClick={refetch}
               disabled={isLoadingGet}
               className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold hover:bg-gray-300 disabled:opacity-60"
             >
               {isLoadingGet ? "불러오는 중..." : "GET /api/posts 재조회"}
+            </button> */}
+            <button
+              type="button"
+              onClick={() => navigate("/community")}
+              disabled={isSubmitting}
+              className="rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold hover:bg-gray-200 disabled:opacity-60"
+            >
+              취소
             </button>
           </div>
 
@@ -118,7 +134,7 @@ export default function CommunityWritePage() {
             </pre>
           ) : null}
 
-          <div className="mt-6 grid gap-4">
+          {/* <div className="mt-6 grid gap-4">
             <div>
               <div className="mb-2 text-sm font-bold text-gray-700">POST 응답</div>
               <pre className="overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
@@ -132,13 +148,8 @@ export default function CommunityWritePage() {
                 {JSON.stringify(lastGetRes, null, 2)}
               </pre>
             </div>
-          </div>
+          </div> */}
 
-          <div className="mt-6 text-xs text-gray-500 whitespace-pre-wrap">
-            {`현재 페이지 오리진: ${window.location.origin}
-현재 쿠키 포함 요청: withCredentials=true
-※ 로그인 후 테스트가 막히면, 백엔드 LOGIN_SUCCESS_REDIRECT_URI가 solvemeup.com으로 고정돼 있을 확률이 높음`}
-          </div>
         </div>
       </main>
     </div>

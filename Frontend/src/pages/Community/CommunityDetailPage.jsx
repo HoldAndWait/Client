@@ -5,6 +5,9 @@ import api from "@api/api.js";
 const ghostBtn =
   "bg-transparent flex items-center gap-1 p-0 border-0 outline-none focus:outline-none text-gray-500 hover:text-black";
 
+/** =========================
+ *  날짜 포맷(한국 시간, "2026. 1. 28. 오전 11:00")
+ * ========================= */
 function formatKST(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -19,20 +22,39 @@ export default function CommunityDetailPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
 
+    /** =========================
+   * 조회 결과 상태
+   * - raw: 서버 응답 원본(디버깅용)
+   * - post: 화면에 뿌릴 게시글 데이터
+   * - errMsg/debug: 에러/상태 표시(문제 생길 때 원인 추적)
+   * ========================= */
   const [raw, setRaw] = useState(null);
   const [post, setPost] = useState(null);
   const [errMsg, setErrMsg] = useState("");
   const [debug, setDebug] = useState("INIT");
+
+  /** =========================
+   * 3) 댓글 입력 상태 (아직 API 연결 전)
+   * ========================= */
   const [commentText, setCommentText] = useState("");
 
-  // 이전 요청을 abort 하기 위해 controller 저장
-  // 요청이 여러번 -> success 만 처리할 수 있도록
+   /** =========================
+   * 요청 중복/경합 방지용 AbortController 보관
+   * - React StrictMode/dev 환경에서는 effect가 2번 도는 일이 흔함
+   * - 이전 요청을 abort 해서 "success 후 fail" 같은 이상한 로그/상태를 줄임
+   * ========================= */
   const abortRef = useRef(null);
 
+  /** =========================
+   * 내 정보(me) + 삭제 진행 상태
+   * - me: 현재 로그인한 사용자 정보 (작성자 본인 여부 판별용)
+   * - isDeleting: 삭제 버튼 중복 클릭 방지
+   * ========================= */
   const [me, setMe] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 여기는 삭제 처리
+
+  // "내 정보 조회" - 작성자 본인인지 판단하기 위해 필요
   useEffect(() => {
     let cancelled = false;
 
@@ -57,7 +79,7 @@ export default function CommunityDetailPage() {
   }, []);
 
 
-  // 여기는 조회
+  // 여기는 게시글 상세 조회
   useEffect(() => {
     if (!postId) return;
 
@@ -126,6 +148,11 @@ export default function CommunityDetailPage() {
     return comments.length;
   }, [post, comments]);
 
+  /** =========================
+   * (권한) "내가 작성자인지" 판별
+   * - me.id vs post.author.id 비교
+   * - 둘 다 문자열로 바꿔 비교(타입 차이 방지)
+   * ========================= */
   const isMine = useMemo(() => {
     const myId = me?.id ?? me?.userId;
     const authorId = post?.author?.id ?? post?.authorId;
@@ -133,10 +160,13 @@ export default function CommunityDetailPage() {
   }, [me, post]);
 
 
+   /** =========================
+   *  게시글 삭제
+   * ========================= */
   const onClickDelete = async () => {
     if (!postId) return;
 
-    const ok = window.confirm("정말 삭제할까요? 삭제 후 복구할 수 없습니다.");
+    const ok = window.confirm("정말 삭제할까요?");
     if (!ok) return;
 
     setIsDeleting(true);
@@ -156,7 +186,10 @@ export default function CommunityDetailPage() {
     }
   };
 
-
+ /** =========================
+   * 에러 화면
+   * - 상세 조회 실패 시 보여줌
+   * ========================= */
   if (errMsg) {
     return (
       <div className="min-h-screen bg-white">
@@ -180,6 +213,10 @@ export default function CommunityDetailPage() {
     );
   }
 
+   /** =========================
+   * 로딩 화면
+   * - post가 아직 없으면 "불러오는 중..."
+   * ========================= */
   if (!post) {
     return (
       <div className="min-h-screen bg-white">
@@ -214,10 +251,6 @@ export default function CommunityDetailPage() {
           </Link>
           <div className="text-xl font-bold text-gray-800">커뮤니티 게시글</div>
         </div>
-        <div className="text-xs text-gray-400">
-          DEBUG isMine={String(isMine)} | meId={String(me?.id ?? me?.userId ?? "")} | authorId={String(post?.author?.id ?? post?.authorId ?? "")}
-        </div>
-
 
         <div className="rounded-lg border bg-white p-10">
           <div className="flex items-center justify-between">
@@ -332,10 +365,11 @@ export default function CommunityDetailPage() {
             )}
           </div>
 
+          {/* 디버깅용
           <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
           <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
             {JSON.stringify(raw, null, 2)}
-          </pre>
+          </pre> */}
         </div>
       </main>
     </div>

@@ -71,7 +71,6 @@ export default function CommunityEditPage() {
     setDebug("SUBMIT_STARTED");
 
     try {
-      // 서버 스펙이 PUT일 가능성이 가장 높음. (PATCH면 patch로 바꾸면 됨)
       const res = await api.put(`/api/posts/${postId}`, body);
 
       setDebug("SUBMIT_SUCCESS");
