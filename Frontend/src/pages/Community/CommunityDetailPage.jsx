@@ -381,10 +381,10 @@ export default function CommunityDetailPage() {
 
 
           {/* 디버깅용 */}
-          <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
+          {/* <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
           <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
             {JSON.stringify(raw, null, 2)}
-          </pre>
+          </pre> */}
         </div>
       </main>
     </div>

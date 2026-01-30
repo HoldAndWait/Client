@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import api from "@api/api.js";
 
-export default function CommentForm({ postId, onSuccess }) {
+export default function CommentForm({
+  postId,
+  parentId = null,     
+  onSuccess,
+  placeholder,
+  autoFocus = false,
+  compact = false,
+}) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errMsg, setErrMsg] = useState("");
@@ -15,25 +22,29 @@ export default function CommentForm({ postId, onSuccess }) {
     setErrMsg("");
 
     try {
-      await api.post(`/api/posts/${postId}/comments`, { content: text });
+      await api.post(`/api/posts/${postId}/comments`, {
+        content: text,
+        parentId, // ✅ null이면 댓글, 숫자면 대댓글
+      });
       setContent("");
       onSuccess?.();
     } catch (err) {
-      console.error("댓글 작성 실패", err);
-      setErrMsg("댓글 작성에 실패했습니다.");
+      console.error("댓글/대댓글 작성 실패", err);
+      setErrMsg("작성에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={submit} className="flex gap-2 mb-4">
+    <form onSubmit={submit} className={`flex gap-2 ${compact ? "" : "mb-4"}`}>
       <input
         value={content}
         onChange={(e) => setContent(e.target.value)}
         className="flex-1 border rounded p-2"
-        placeholder="댓글을 입력하세요"
+        placeholder={placeholder ?? (parentId ? "대댓글을 입력하세요" : "댓글을 입력하세요")}
         disabled={isSubmitting}
+        autoFocus={autoFocus}
       />
       <button
         type="submit"
