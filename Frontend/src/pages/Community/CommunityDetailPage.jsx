@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "@api/api.js";
+import PostReaction from "@components/Reactions/PostReaction";
+import CommentsSection from "@components/PostComments/CommentsSection";
+
 
 const ghostBtn =
   "bg-transparent flex items-center gap-1 p-0 border-0 outline-none focus:outline-none text-gray-500 hover:text-black";
@@ -52,6 +55,8 @@ export default function CommunityDetailPage() {
    * ========================= */
   const [me, setMe] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const { loading: reactionLoading, like, dislike } = PostReaction({ postId });
 
 
   // "내 정보 조회" - 작성자 본인인지 판단하기 위해 필요
@@ -141,12 +146,10 @@ export default function CommunityDetailPage() {
     };
   }, [postId]);
   
-  const comments = useMemo(() => post?.comments ?? [], [post]);
   
-  const commentCount = useMemo(() => {
-    if (typeof post?.commentCount === "number") return post.commentCount;
-    return comments.length;
-  }, [post, comments]);
+  const commentCount = useMemo(() => (post?.comments?.length ?? 0), [post]);
+
+
 
   /** =========================
    * (권한) "내가 작성자인지" 판별
@@ -185,6 +188,54 @@ export default function CommunityDetailPage() {
       setIsDeleting(false);
     }
   };
+
+   /** =========================
+   *  좋아요, 싫어요 클릭
+   * ========================= */
+  const fetchPost = async () => {
+    const res = await api.get(`/api/posts/${postId}`);
+    setPost(res.data ?? null);
+  };
+
+  const applyReactionResult = async(result) => {
+    if (!result?.ok) {
+      alert(
+        `반응 실패 (status=${result?.error?.status ?? "?"})\n` +
+          (result?.error?.message ?? "unknown error")
+      );
+      return;
+    }
+
+    // ✅ 1) 서버가 카운트를 내려줬다면 그걸로 즉시 반영
+  const hasCounts = result.nextLike != null || result.nextDislike != null;
+
+    if (hasCounts) {
+      setPost((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          likeCount: result.nextLike != null ? result.nextLike : prev.likeCount,
+          dislikeCount:
+            result.nextDislike != null ? result.nextDislike : prev.dislikeCount,
+        };
+      });
+      return;
+    }
+
+    // ✅ 2) 서버가 카운트를 안 주면(빈 바디/204) → GET로 다시 동기화 (정답)
+    await fetchPost();
+  };
+
+  const onClickLikePost = async () => {
+    const result = await like();
+    applyReactionResult(result);
+  };
+
+  const onClickDislikePost = async () => {
+    const result = await dislike();
+    applyReactionResult(result);
+  };
+
 
  /** =========================
    * 에러 화면
@@ -234,10 +285,6 @@ export default function CommunityDetailPage() {
 
 
 
-  const onClickAddComment = () => alert("아직 안됨");
-  const onClickLikeComment = () => alert("아직 안됨");
-  const onClickDislikeComment = () => alert("아직 안됨");
-
   const authorNickname = post?.author?.nickname ?? "(author 없음)";
   const createdAtText = formatKST(post?.createdAt);
   const updatedAtText = formatKST(post?.updatedAt);
@@ -264,14 +311,28 @@ export default function CommunityDetailPage() {
             </div>
 
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <div className="text-gray-500 flex items-center gap-1">
+              <button
+                type="button"
+                className={ghostBtn}
+                onClick={onClickLikePost}
+                disabled={reactionLoading}
+                title="추천"
+              >
                 <span className="material-symbols-outlined">thumb_up</span>
                 {post.likeCount ?? 0}
-              </div>
-              <div className="text-gray-500 flex items-center gap-1">
+              </button>
+
+              <button
+                type="button"
+                className={ghostBtn}
+                onClick={onClickDislikePost}
+                disabled={reactionLoading}
+                title="비추천"
+              >
                 <span className="material-symbols-outlined">thumb_down</span>
                 {post.dislikeCount ?? 0}
-              </div>
+              </button>
+
               <div className="text-gray-500 flex items-center gap-1">
                 <span className="material-symbols-outlined">comment</span>
                 {commentCount}
@@ -310,63 +371,17 @@ export default function CommunityDetailPage() {
             {post.content ?? "(content 없음)"}
           </div>
 
-          <div className="mt-10 flex items-center gap-3">
-            <input
-              className="h-11 flex-1 rounded-md border border-gray-300 px-4 text-sm outline-none focus:border-gray-400"
-              placeholder="댓글을 입력하세요"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onClickAddComment();
-              }}
-            />
-            <button
-              className="min-w-[110px] rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300"
-              onClick={onClickAddComment}
-            >
-              댓글 달기
-            </button>
-          </div>
+          
+          <CommentsSection
+            postId={postId}
+            comments={post?.comments ?? []}
+            onRefreshPost={fetchPost}
+          />
 
-          <div className="mt-8 space-y-4">
-            {comments.length === 0 ? (
-              <div className="py-10 text-center text-gray-500">댓글이 없습니다.</div>
-            ) : (
-              comments.map((c) => {
-                const cAuthor =
-                  c?.author?.nickname ?? c?.authorNickname ?? c?.author ?? "익명";
-                const cCreatedAt = formatKST(c?.createdAt);
 
-                return (
-                  <div key={c.id ?? `${cAuthor}-${cCreatedAt}`} className="rounded-md border p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span className="material-symbols-outlined">face</span>
-                        <span className="font-semibold text-gray-700">{cAuthor}</span>
-                        <span className="ml-2">{cCreatedAt}</span>
-                      </div>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <button type="button" className={ghostBtn} onClick={onClickLikeComment}>
-                          <span className="material-symbols-outlined">thumb_up</span>
-                          {c.likeCount ?? 0}
-                        </button>
-                        <button type="button" className={ghostBtn} onClick={onClickDislikeComment}>
-                          <span className="material-symbols-outlined">thumb_down</span>
-                          {c.dislikeCount ?? 0}
-                        </button>
-                      </div>
-                    </div>
-
-                    <p className="mt-2 text-gray-800">{c.content ?? ""}</p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* 디버깅용
-          <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
+          {/* 디버깅용 */}
+          {/* <div className="mt-8 text-xs text-gray-500">DEBUG: {debug}</div>
           <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
             {JSON.stringify(raw, null, 2)}
           </pre> */}

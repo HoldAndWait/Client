@@ -101,6 +101,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "@api/api.js";
+import PostReaction from "@components/Reactions/PostReaction";
+
 
 /** =========================
  * 날짜 포맷 유틸 (예: 2026-01-28T02:06:52 -> Jan.28.2026)
@@ -148,8 +150,10 @@ export default function CommunityListPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [debug, setDebug] = useState("INIT");
 
-  // 4) 원본 응답 확인용 (문제 생기면 구조 파악하려고)
+  // 원본 응답 확인용 (문제 생기면 구조 파악하려고)
   //const [raw, setRaw] = useState(null);
+  // 좋아요/싫어요 요청 중 버튼 연타 방지용 (postId별로 막음)
+  const [busyMap, setBusyMap] = useState({});
 
   // 5) 페이지 진입 시 게시글 목록 조회
   useEffect(() => {
@@ -237,9 +241,33 @@ export default function CommunityListPage() {
   // =========================
   // 8) 추천(좋아요) 버튼 클릭 핸들러
   // =========================
-  const onLike = async (postId) => {
-    alert("추천 API 연결 전입니다.");
+  const syncOnePost = async (postId) => {
+    const res = await api.get(`/api/posts/${postId}`);
+    const p = res.data?.data ?? res.data ?? null;
+
+    const nextLike = p?.likeCount ?? p?.likes ?? p?.like_count;
+
+    setPosts((prev) =>
+      prev.map((row) => {
+        if (String(row.id) !== String(postId)) return row;
+        return {
+          ...row,
+          likeCount: nextLike ?? row.likeCount,
+        };
+      })
+    );
   };
+
+
+  const onLike = async (postId) => {
+    try {
+      await api.post(`/api/posts/${postId}/likes`);
+      await syncOnePost(postId); // ✅ 응답 바디가 없으니 GET으로 동기화
+    } catch (e) {
+      alert("추천 실패");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -287,7 +315,6 @@ export default function CommunityListPage() {
 
         {/* =========================
             (선택) 디버그 영역: 서버 응답 구조 확인용
-            안정화되면 지워도 됨
         ========================= */}
         {/* <div className="mt-2 text-xs text-gray-500">DEBUG: {debug}</div> */}
         {/* <pre className="mt-3 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-700">
