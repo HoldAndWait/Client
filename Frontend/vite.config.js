@@ -18,6 +18,7 @@ export default defineConfig({
       { find: '@router', replacement: path.resolve(__dirname, 'src/router') },
       { find: '@store', replacement: path.resolve(__dirname, 'src/store') },
       { find: '@styles', replacement: path.resolve(__dirname, 'src/styles') },
+      { find: '@hooks', replacement: path.resolve(__dirname, 'src/hooks') },
     ],
   },
 
@@ -27,6 +28,17 @@ export default defineConfig({
       '/api': {
         target: 'http://solvemeup.com',
         changeOrigin: true,
+        secure: false,
+      },
+      "/oauth2": {
+        target: "http://solvemeup.com",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/login": {
+        target: "http://solvemeup.com",
+        changeOrigin: true,
+        secure: false,
       },
     },
     watch: {
