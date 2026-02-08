@@ -8,6 +8,10 @@ import MyPage from "@pages/MyPage/MyPageGate";
 import AuthCallbackPage from "@pages/AuthCallbackPage";
 
 const routerInfo = [
+  { 
+    path: "auth/callback", 
+    element: <AuthCallbackPage /> 
+  },
   {
     path: "/",
     element: <MainLayout />,
@@ -15,9 +19,6 @@ const routerInfo = [
       {
         index: true,
         element: <div className="p-10 text-2xl">홈 화면입니다!</div>,
-      },
-      { path: "auth/callback", 
-        element: <AuthCallbackPage /> 
       },
       {
         path: "community",
