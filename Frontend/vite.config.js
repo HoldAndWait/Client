@@ -22,24 +22,28 @@ export default defineConfig({
     ],
   },
 
-  /** 배포 서버로 쏨 */
+  /** 로컬 개발 용도 -> 배포할 때는 nginx */
   server: {
     proxy: {
-      '/api': {
-        target: 'http://solvemeup.com',
+      "/api": {
+        target: "http://localhost:8080",
         changeOrigin: true,
-        secure: false,
       },
-      "/oauth2": {
-        target: "http://solvemeup.com",
-        changeOrigin: true,
-        secure: false,
-      },
-      "/login": {
-        target: "http://solvemeup.com",
-        changeOrigin: true,
-        secure: false,
-      },
+      // '/api': {
+      //   target: 'http://solvemeup.com',
+      //   changeOrigin: true,
+      //   secure: false,
+      // },
+      // "/oauth2": {
+      //   target: "http://solvemeup.com",
+      //   changeOrigin: true,
+      //   secure: false,
+      // },
+      // "/login": {
+      //   target: "http://solvemeup.com",
+      //   changeOrigin: true,
+      //   secure: false,
+      // },
     },
     watch: {
       usePolling: true,
