@@ -1,11 +1,26 @@
 import React from "react";
+import axios from "axios";
+import api from "@api/api.js";
 
 const MyPageLoggedOut = () => {
 
-  const handleGithubLogin = () => {
-    // OAuth 시작 url
-    window.location.href = "//"
-  }
+  const DEV_USER_ID = 1; 
+
+  const handleGithubLogin = async () => {
+    if (import.meta.env.DEV) {
+      try {
+        await api.post("/api/dev/login", null, { params: { userId: DEV_USER_ID } });
+        window.location.href = "/";
+      } catch (e) {
+        console.error(e);
+        alert("DEV 로그인 실패");
+      }
+      return;
+    }
+
+    window.location.href =
+      `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_LOGIN_PATH}`;
+  };
 
 
   return (

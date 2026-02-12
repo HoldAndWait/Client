@@ -1,12 +1,18 @@
 import MainLayout from "@layout/index";
 import CommunityListPage from "@pages/Community/CommunityListPage";
 import CommunityWritePage from "@pages/Community/CommunityWritePage";
-import CommunityDetailPage from "@pages/Community/CommunityDeatailPage";
+import CommunityEditPage from "@pages/Community/CommunityEditPage";
+import CommunityDetailPage from "@pages/Community/CommunityDetailPage";
 import ProblemListPage from "@pages/Problems/ProblemListPage";
 import ProblemDetailPage from "@pages/Problems/ProblemDetail";
 import MyPage from "@pages/MyPage/MyPageGate";
+import AuthCallbackPage from "@pages/AuthCallbackPage";
 
 const routerInfo = [
+  { 
+    path: "auth/callback", 
+    element: <AuthCallbackPage /> 
+  },
   {
     path: "/",
     element: <MainLayout />,
@@ -22,6 +28,10 @@ const routerInfo = [
       {
         path: "communitywrite",
         element: <CommunityWritePage />,
+      },
+      {
+        path: "community/:postId/edit",
+        element: <CommunityEditPage />,
       },
       {
         path: "community/:postId",
