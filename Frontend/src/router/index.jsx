@@ -3,6 +3,7 @@ import CommunityListPage from "@pages/Community/CommunityListPage";
 import CommunityWritePage from "@pages/Community/CommunityWritePage";
 import CommunityDetailPage from "@pages/Community/CommunityDeatailPage";
 import ProblemListPage from "@pages/Problems/ProblemListPage";
+import ProblemDetailPage from "@pages/Problems/ProblemDetail";
 import MyPage from "@pages/MyPage/MyPageGate";
 
 const routerInfo = [
@@ -29,6 +30,10 @@ const routerInfo = [
       {
         path: "problems",
         element: <ProblemListPage />,
+      },
+      {
+        path: "problems/detail",
+        element: <ProblemDetailPage />,
       },
       {
         path: "mypage",
