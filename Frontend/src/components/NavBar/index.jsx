@@ -1,10 +1,11 @@
-import React from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "@api/api";
-import useAuth from "@hooks/useAuth"; 
+import useAuth from "@hooks/useAuth";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoading, isAuthed, setIsAuthed } = useAuth();
 
   const logoutPath = import.meta.env.DEV ? "/api/dev/logout" : "/api/auth/logout";
@@ -13,48 +14,141 @@ const Navbar = () => {
     try {
       await api.post(logoutPath);
     } catch (e) {
-      // 서버에서 이미 세션이 만료된 경우 등도 있을 수 있으니 UX상 그냥 로그아웃 처리해도 괜찮음
       console.error("logout failed:", e);
     } finally {
-      setIsAuthed(false);      // 프론트 상태 즉시 반영
-      navigate("/");           // 홈으로 이동
+      setIsAuthed(false);
+      navigate("/");
     }
   };
 
+  const isActive = (to) =>
+    to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
+
   return (
-    <nav className="flex justify-between items-center p-5">
-      <div className="text-[32px] font-bold">
-        <Link to="/">SolveMeUp</Link>
-      </div>
-      <div className="text-black visited:text-black">
-        <Link to="/problems" className="px-[10px] hover:font-bold">문제</Link>
-        <Link to="/ranking" className="px-[10px] hover:font-bold">랭킹</Link>
-        <Link to="/archive" className="px-[10px] hover:font-bold">아카이브</Link>
-        <Link to="/community" className="px-[10px] hover:font-bold">커뮤니티</Link>
-      </div>
-
-      <div className="flex items-center gap-3">
-        
-        {!isLoading && !isAuthed && (
-          <Link to="/mypage" className="px-3 py-1 rounded hover:font-bold">
-            로그인
+    <nav
+      className="
+        sticky top-0 z-50 w-full
+        border-b border-gray-100
+        bg-white/80 backdrop-blur
+        text-[var(--color-smu-black)]
+      "
+    >
+      <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between gap-4">
+        {/* ===== Brand ===== */}
+        <div className="flex items-center gap-3">
+          <Link
+            to="/"
+            className="text-[22px] font-extrabold tracking-tight"
+          >
+            SolveMeUp
           </Link>
-        )}
+          <span className="hidden md:inline text-sm text-[var(--color-smu-gray)]">
+            Coding Practice Platform
+          </span>
+        </div>
 
-        {!isLoading && isAuthed && (
-          <>
-            <Link to="/mypage" className="flex items-center">
-              <span className="material-symbols-outlined">account_circle</span>
-            </Link>
-            <button
-              type="button"
-              onClick={onLogout}
-              className="px-3 py-1 rounded hover:font-bold"
+        {/* ===== Center Nav ===== */}
+        <div className="hidden md:flex items-center gap-1">
+          {[
+            { to: "/problems", label: "문제" },
+            { to: "/ranking", label: "랭킹" },
+            { to: "/archive", label: "아카이브" },
+            { to: "/community", label: "커뮤니티" },
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`
+                px-3 py-2 rounded-xl text-sm font-semibold transition
+                ${
+                  isActive(item.to)
+                    ? "bg-[var(--color-smu-base)] text-[var(--color-smu-black)]"
+                    : "text-[var(--color-smu-navy)] hover:bg-[var(--color-smu-base)] hover:text-[var(--color-smu-black)]"
+                }
+              `}
             >
-              로그아웃
-            </button>
-          </>
-        )}
+              {item.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* ===== Auth Area (기능 변경 없음) ===== */}
+        <div className="flex items-center gap-3">
+          {!isLoading && !isAuthed && (
+            <Link
+              to="/mypage"
+              className="
+                px-4 py-2 rounded-2xl text-sm font-semibold transition
+                bg-[var(--color-smu-neonlime)]
+                text-[var(--color-smu-black)]
+                hover:bg-[var(--color-smu-navy)]
+                hover:text-[var(--color-smu-base)]
+              "
+            >
+              로그인
+            </Link>
+          )}
+
+          {!isLoading && isAuthed && (
+            <>
+              <Link
+                to="/mypage"
+                className="
+                  inline-flex items-center justify-center
+                  w-11 h-11 rounded-2xl
+                  text-[var(--color-smu-navy)]
+                  hover:bg-[var(--color-smu-base)]
+                  transition
+                "
+              >
+                <span className="material-symbols-outlined">
+                  account_circle
+                </span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={onLogout}
+                className="
+                  px-4 py-2 rounded-2xl text-sm font-semibold transition
+                  border border-gray-200
+                  text-[var(--color-smu-navy)]
+                  hover:border-[var(--color-smu-navy)]
+                  hover:bg-[var(--color-smu-base)]
+                "
+              >
+                로그아웃
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ===== Mobile Nav ===== */}
+      <div className="md:hidden border-t border-gray-100">
+        <div className="max-w-[1200px] mx-auto px-6 py-2 flex items-center justify-between">
+          {[
+            { to: "/problems", label: "문제" },
+            { to: "/ranking", label: "랭킹" },
+            { to: "/archive", label: "아카이브" },
+            { to: "/community", label: "커뮤니티" },
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`
+                text-sm font-semibold px-2 py-2 rounded-xl transition
+                ${
+                  isActive(item.to)
+                    ? "bg-[var(--color-smu-base)] text-[var(--color-smu-black)]"
+                    : "text-[var(--color-smu-navy)] hover:bg-[var(--color-smu-base)]"
+                }
+              `}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
       </div>
     </nav>
   );

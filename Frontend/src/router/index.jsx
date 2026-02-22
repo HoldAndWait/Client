@@ -1,4 +1,7 @@
 import MainLayout from "@layout/index";
+import HomePage from "@pages/Home";
+import RankingPage from "@pages/Ranking/MainRanking";
+import ArchivePage from "@pages/ArchivePage/MainArchive";
 import CommunityListPage from "@pages/Community/CommunityListPage";
 import CommunityWritePage from "@pages/Community/CommunityWritePage";
 import CommunityEditPage from "@pages/Community/CommunityEditPage";
@@ -19,7 +22,11 @@ const routerInfo = [
     children: [
       {
         index: true,
-        element: <div className="p-10 text-2xl">홈 화면입니다!</div>,
+        element: <HomePage/>,
+      },
+      {
+        path: "ranking",
+        element: <RankingPage/>,
       },
       {
         path: "community",
@@ -44,6 +51,10 @@ const routerInfo = [
       {
         path: "problems/detail",
         element: <ProblemDetailPage />,
+      },
+      {
+        path: "archive",
+        element: <ArchivePage/>,
       },
       {
         path: "mypage",
