@@ -7,7 +7,7 @@ const MyPageGate = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-blue-200">
+      <div className="min-h-screen">
         로딩중..
       </div>
     );

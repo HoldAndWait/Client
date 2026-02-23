@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import api from "@api/api";
 import {
   putEmail,
   deleteEmail,
@@ -12,13 +13,6 @@ import {
 
 const normalize = (v) => (v ?? "").trim();
 
-const FieldRow = ({ label, children }) => (
-  <div className="flex items-center gap-3 text-sm">
-    <div className="w-24 text-gray-500">{label}</div>
-    <div className="flex-1">{children}</div>
-  </div>
-);
-
 const LinkOrDisabled = ({ href, text }) => {
   if (href) {
     return (
@@ -26,26 +20,77 @@ const LinkOrDisabled = ({ href, text }) => {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-smu-navy hover:underline"
+        className="text-[var(--color-smu-navy)] font-semibold hover:text-[var(--color-smu-black)] transition"
       >
-        {text}
+        {text} <span className="opacity-60">↗</span>
       </a>
     );
   }
-  return <span className="text-gray-400">{text}</span>;
+  return <span className="text-[var(--color-smu-gray)]">{text}</span>;
 };
 
+function Badge({ tone = "gray", children }) {
+  const cls =
+    tone === "ok"
+      ? "bg-[var(--color-smu-neonlime)] text-[var(--color-smu-black)]"
+      : tone === "bad"
+      ? "bg-red-50 text-red-600 border border-red-200"
+      : tone === "info"
+      ? "bg-[var(--color-smu-base)] text-[var(--color-smu-navy)] border border-gray-100"
+      : "bg-white text-[var(--color-smu-gray)] border border-gray-200";
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${cls}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function ActionButton({
+  variant = "ghost",
+  disabled,
+  onClick,
+  children,
+  title,
+}) {
+  const base =
+    "px-3 py-2 rounded-xl text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed";
+  const cls =
+    variant === "primary"
+      ? "bg-[var(--color-smu-navy)] text-[var(--color-smu-base)] hover:bg-[var(--color-smu-neonlime)] hover:text-[var(--color-smu-black)]"
+      : variant === "danger"
+      ? "bg-white border border-red-200 text-red-600 hover:bg-red-50"
+      : "bg-white border border-gray-200 text-[var(--color-smu-navy)] hover:border-[var(--color-smu-navy)] hover:bg-[var(--color-smu-base)]";
+  return (
+    <button
+      type="button"
+      className={`${base} ${cls}`}
+      disabled={disabled}
+      onClick={onClick}
+      title={title}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FieldRow({ label, children, right }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-16 text-xs text-[var(--color-smu-gray)]">{label}</div>
+        <div className="text-sm text-[var(--color-smu-black)] truncate">
+          {children}
+        </div>
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
+}
+
 export default function ProfileSection({ user, canEdit = false, onUpdated }) {
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [errMsg, setErrMsg] = useState("");
-
-  // 닉네임 중복 체크 관련
-  const [nickCheck, setNickCheck] = useState({ status: "idle", msg: "" });
-  // idle | checking | ok | bad
-
-  // ✅ 백엔드에 githubUrl이 없더라도, GitHub OAuth면 username이 github login일 가능성 높음
-  // (정확한 필드명이 따로 있으면 여기를 바꿔주면 됨)
+  // githubUrl 없더라도 GitHub OAuth면 username이 github login일 가능성
   const computedGithubUrl = useMemo(() => {
     const direct = user?.githubUrl ?? user?.github_url;
     if (direct) return direct;
@@ -53,266 +98,585 @@ export default function ProfileSection({ user, canEdit = false, onUpdated }) {
     return login ? `https://github.com/${login}` : "";
   }, [user]);
 
-  const [form, setForm] = useState({
+  const initial = useMemo(
+    () => ({
+      nickname: user?.nickname ?? user?.username ?? "",
+      email: user?.email ?? "",
+      githubUrl: user?.githubUrl ?? computedGithubUrl ?? "",
+      techblogUrl: user?.techblogUrl ?? user?.blogUrl ?? "",
+    }),
+    [user, computedGithubUrl]
+  );
+
+  const [editKey, setEditKey] = useState(null);
+  const [draft, setDraft] = useState({
     nickname: "",
     email: "",
     githubUrl: "",
     techblogUrl: "",
   });
 
-  // user가 바뀌면 폼 초기화
+  const [saving, setSaving] = useState({
+    nickname: false,
+    email: false,
+    githubUrl: false,
+    techblogUrl: false,
+  });
+
+  const [msg, setMsg] = useState({
+    nickname: { tone: "gray", text: "" },
+    email: { tone: "gray", text: "" },
+    githubUrl: { tone: "gray", text: "" },
+    techblogUrl: { tone: "gray", text: "" },
+  });
+
+  // 닉네임 중복 체크
+  const [nickCheck, setNickCheck] = useState({ status: "idle", msg: "" });
+  // idle | checking | ok | bad
+
   useEffect(() => {
-    setForm({
-      nickname: user?.nickname ?? user?.username ?? "",
-      email: user?.email ?? "",
-      githubUrl: user?.githubUrl ?? computedGithubUrl ?? "",
-      techblogUrl: user?.techblogUrl ?? user?.blogUrl ?? "",
+    setDraft(initial);
+    setEditKey(null);
+    setMsg({
+      nickname: { tone: "gray", text: "" },
+      email: { tone: "gray", text: "" },
+      githubUrl: { tone: "gray", text: "" },
+      techblogUrl: { tone: "gray", text: "" },
     });
     setNickCheck({ status: "idle", msg: "" });
-    setErrMsg("");
-  }, [user, computedGithubUrl]);
+  }, [initial]);
 
-  const close = () => {
-    setOpen(false);
-    setErrMsg("");
-    setNickCheck({ status: "idle", msg: "" });
+  const startEdit = (k) => {
+    setEditKey(k);
+    setMsg((prev) => ({ ...prev, [k]: { tone: "gray", text: "" } }));
+    if (k === "nickname") setNickCheck({ status: "idle", msg: "" });
+  };
+
+  const cancelEdit = (k) => {
+    setDraft((prev) => ({ ...prev, [k]: initial[k] ?? "" }));
+    setEditKey(null);
+    setMsg((prev) => ({ ...prev, [k]: { tone: "gray", text: "" } }));
+    if (k === "nickname") setNickCheck({ status: "idle", msg: "" });
   };
 
   const setField = (k) => (e) => {
     const v = e.target.value;
-    setForm((prev) => ({ ...prev, [k]: v }));
+    setDraft((prev) => ({ ...prev, [k]: v }));
+    setMsg((prev) => ({ ...prev, [k]: { tone: "gray", text: "" } }));
     if (k === "nickname") setNickCheck({ status: "idle", msg: "" });
   };
 
+  const withSaving = async (k, fn) => {
+    setSaving((p) => ({ ...p, [k]: true }));
+    setMsg((p) => ({ ...p, [k]: { tone: "info", text: "저장 중..." } }));
+    try {
+      await fn();
+      await onUpdated?.();
+      setMsg((p) => ({ ...p, [k]: { tone: "ok", text: "저장 완료" } }));
+      setEditKey(null);
+    } catch (e) {
+      setMsg((p) => ({
+        ...p,
+        [k]: {
+          tone: "bad",
+          text:
+            e?.response?.data?.message ??
+            `실패 (status=${e?.response?.status ?? "?"})`,
+        },
+      }));
+    } finally {
+      setSaving((p) => ({ ...p, [k]: false }));
+    }
+  };
+
   const runNicknameCheck = async () => {
-    const nickname = normalize(form.nickname);
+    const nickname = normalize(draft.nickname);
+
     if (!nickname) {
       setNickCheck({ status: "bad", msg: "닉네임을 입력해주세요." });
       return;
     }
-    setNickCheck({ status: "checking", msg: "확인 중..." });
-    try {
-      const res = await checkNicknameAvailability(nickname);
-      // ⚠️ 응답 형태가 boolean인지 {available:true}인지 몰라서 둘 다 대응
-      const available =
-        res.data === true ||
-        res.data?.available === true ||
-        res.data?.isAvailable === true;
 
-      if (available) setNickCheck({ status: "ok", msg: "사용 가능한 닉네임입니다." });
-      else setNickCheck({ status: "bad", msg: "이미 사용 중인 닉네임입니다." });
+    setNickCheck({ status: "checking", msg: "확인 중..." });
+
+    try {
+      await checkNicknameAvailability(nickname);
+
+      setNickCheck({ status: "ok", msg: "사용 가능" });
     } catch (e) {
+      if (e?.response?.status === 409) {
+        setNickCheck({ status: "bad", msg: "이미 사용 중" });
+        return;
+      }
+
       setNickCheck({ status: "bad", msg: "중복 확인 실패" });
     }
   };
 
-  const save = async () => {
-    setSaving(true);
-    setErrMsg("");
+  // ===== actions =====
+  const saveNickname = async () => {
+    const next = normalize(draft.nickname);
+    const prev = normalize(initial.nickname);
 
-    try {
-      const next = {
-        nickname: normalize(form.nickname),
-        email: normalize(form.email),
-        githubUrl: normalize(form.githubUrl),
-        techblogUrl: normalize(form.techblogUrl),
-      };
-
-      const prev = {
-        nickname: normalize(user?.nickname ?? user?.username),
-        email: normalize(user?.email),
-        githubUrl: normalize(user?.githubUrl ?? computedGithubUrl),
-        techblogUrl: normalize(user?.techblogUrl ?? user?.blogUrl),
-      };
-
-      const tasks = [];
-
-      // 닉네임 PUT (변경 시)
-      if (next.nickname && next.nickname !== prev.nickname) {
-        // 원하면 여기서 nickCheck ok일 때만 저장하도록 제한 가능
-        tasks.push(putNickname(next.nickname));
-      }
-
-      // 이메일: 비면 DELETE, 아니면 PUT (변경 시)
-      if (next.email !== prev.email) {
-        if (next.email) tasks.push(putEmail(next.email));
-        else tasks.push(deleteEmail());
-      }
-
-      // github-url: 비면 DELETE, 아니면 PUT (변경 시)
-      if (next.githubUrl !== prev.githubUrl) {
-        if (next.githubUrl) tasks.push(putGithubUrl(next.githubUrl));
-        else tasks.push(deleteGithubUrl());
-      }
-
-      // techblog-url: 비면 DELETE, 아니면 PUT (변경 시)
-      if (next.techblogUrl !== prev.techblogUrl) {
-        if (next.techblogUrl) tasks.push(putTechblogUrl(next.techblogUrl));
-        else tasks.push(deleteTechblogUrl());
-      }
-
-      if (tasks.length === 0) {
-        close();
-        return;
-      }
-
-      await Promise.all(tasks);
-
-      // ✅ 저장 성공 → 부모에서 다시 me 조회해서 동기화
-      await onUpdated?.();
-      close();
-    } catch (e) {
-      setErrMsg(
-        e?.response?.data?.message ??
-          `저장 실패 (status=${e?.response?.status ?? "?"})`
-      );
-    } finally {
-      setSaving(false);
+    if (!next) {
+      setMsg((p) => ({
+        ...p,
+        nickname: { tone: "bad", text: "닉네임을 입력해주세요." },
+      }));
+      return;
     }
+    if (next === prev) {
+      setMsg((p) => ({
+        ...p,
+        nickname: { tone: "info", text: "변경 사항 없음" },
+      }));
+      setEditKey(null);
+      return;
+    }
+    if (nickCheck.status !== "ok") {
+      setMsg((p) => ({
+        ...p,
+        nickname: { tone: "bad", text: "중복확인을 완료해주세요." },
+      }));
+      return;
+    }
+
+    await withSaving("nickname", async () => {
+      await putNickname(next);
+    });
   };
 
+  const saveEmail = async () => {
+    const next = normalize(draft.email);
+    const prev = normalize(initial.email);
+
+    if (next === prev) {
+      setMsg((p) => ({ ...p, email: { tone: "info", text: "변경 사항 없음" } }));
+      setEditKey(null);
+      return;
+    }
+
+    await withSaving("email", async () => {
+      if (next) await putEmail(next);
+      else await deleteEmail();
+    });
+  };
+
+  const deleteEmailOnly = async () => {
+    if (!initial.email) {
+      setMsg((p) => ({ ...p, email: { tone: "info", text: "삭제할 값 없음" } }));
+      return;
+    }
+    await withSaving("email", async () => {
+      await deleteEmail();
+    });
+  };
+
+  const saveGithub = async () => {
+    const next = normalize(draft.githubUrl);
+    const prev = normalize(initial.githubUrl);
+
+    if (next === prev) {
+      setMsg((p) => ({
+        ...p,
+        githubUrl: { tone: "info", text: "변경 사항 없음" },
+      }));
+      setEditKey(null);
+      return;
+    }
+
+    await withSaving("githubUrl", async () => {
+      if (next) await putGithubUrl(next);
+      else await deleteGithubUrl();
+    });
+  };
+
+  const deleteGithubOnly = async () => {
+    if (!normalize(initial.githubUrl)) {
+      setMsg((p) => ({
+        ...p,
+        githubUrl: { tone: "info", text: "삭제할 값 없음" },
+      }));
+      return;
+    }
+    await withSaving("githubUrl", async () => {
+      await deleteGithubUrl();
+    });
+  };
+
+  const saveTechblog = async () => {
+    const next = normalize(draft.techblogUrl);
+    const prev = normalize(initial.techblogUrl);
+
+    if (next === prev) {
+      setMsg((p) => ({
+        ...p,
+        techblogUrl: { tone: "info", text: "변경 사항 없음" },
+      }));
+      setEditKey(null);
+      return;
+    }
+
+    await withSaving("techblogUrl", async () => {
+      if (next) await putTechblogUrl(next);
+      else await deleteTechblogUrl();
+    });
+  };
+
+  const deleteTechblogOnly = async () => {
+    if (!normalize(initial.techblogUrl)) {
+      setMsg((p) => ({
+        ...p,
+        techblogUrl: { tone: "info", text: "삭제할 값 없음" },
+      }));
+      return;
+    }
+    await withSaving("techblogUrl", async () => {
+      await deleteTechblogUrl();
+    });
+  };
+
+  const displayName = user?.nickname ?? user?.username ?? "USER";
+
   return (
-    <div className="flex gap-10">
-      {/* 프로필 이미지 */}
-      <div className="w-36 h-36 rounded-full bg-gray-300 shrink-0 overflow-hidden">
-        {user?.profileImageUrl ? (
-          <img
-            src={user.profileImageUrl}
-            alt="profile"
-            className="w-full h-full object-cover"
-          />
-        ) : null}
-      </div>
-
-      {/* 표시 영역 */}
-      <div className="flex-1 flex flex-col justify-center gap-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold">
-            {user?.nickname ?? user?.username ?? "USER"}
-          </h2>
-
-          {canEdit && (
-            <button
-              onClick={() => setOpen(true)}
-              className="text-gray-500 hover:text-black"
-              aria-label="프로필 수정"
-              title="프로필 수정"
-            >
-              ✏️
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <FieldRow label="email">
-            {user?.email ? (
-              <span className="text-gray-700">{user.email}</span>
+    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+      {/* header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
+          {/* avatar (smaller) */}
+          <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[var(--color-smu-base)] border border-gray-100 shrink-0">
+            {user?.profileImageUrl ? (
+              <img
+                src={user.profileImageUrl}
+                alt="profile"
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <span className="text-gray-400">미등록</span>
+              <div className="w-full h-full flex items-center justify-center text-xs text-[var(--color-smu-gray)] font-semibold">
+                USER
+              </div>
             )}
-          </FieldRow>
+            <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-2xl bg-[var(--color-smu-neonlime)] opacity-70" />
+          </div>
 
-          <FieldRow label="github">
-            <LinkOrDisabled href={computedGithubUrl} text="github 바로가기" />
-          </FieldRow>
-
-          <FieldRow label="tech blog">
-            <LinkOrDisabled href={user?.techblogUrl ?? user?.blogUrl} text="tech blog 바로가기" />
-          </FieldRow>
-        </div>
-      </div>
-
-      {/* 편집 모달 */}
-      {canEdit && open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={close} />
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">프로필 수정</h3>
-              <button onClick={close} className="text-gray-500 hover:text-black">
-                ✕
-              </button>
+          {/* name + quick links */}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-extrabold text-[var(--color-smu-black)] truncate">
+                {displayName}
+              </h2>
+              {msg.nickname.text ? (
+                <Badge tone={msg.nickname.tone}>{msg.nickname.text}</Badge>
+              ) : null}
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">닉네임</div>
-                <div className="flex gap-2">
-                  <input
-                    value={form.nickname}
-                    onChange={setField("nickname")}
-                    className="w-full border rounded-lg px-3 py-2"
-                    placeholder="닉네임"
-                  />
-                  <button
-                    onClick={runNicknameCheck}
-                    className="px-3 py-2 rounded-lg border hover:bg-gray-50 text-sm"
-                    disabled={nickCheck.status === "checking"}
-                  >
-                    {nickCheck.status === "checking" ? "확인중" : "중복확인"}
-                  </button>
-                </div>
-                {nickCheck.status !== "idle" && (
-                  <div
-                    className={`mt-1 text-xs ${
-                      nickCheck.status === "ok" ? "text-green-600" : "text-red-500"
-                    }`}
-                  >
-                    {nickCheck.msg}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-500 mb-1">이메일</div>
-                <input
-                  value={form.email}
-                  onChange={setField("email")}
-                  className="w-full border rounded-lg px-3 py-2"
-                  placeholder="example@email.com (비우면 삭제)"
-                />
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-500 mb-1">GitHub URL</div>
-                <input
-                  value={form.githubUrl}
-                  onChange={setField("githubUrl")}
-                  className="w-full border rounded-lg px-3 py-2"
-                  placeholder="https://github.com/username (비우면 삭제)"
-                />
-              </div>
-
-              <div>
-                <div className="text-sm text-gray-500 mb-1">Tech Blog URL</div>
-                <input
-                  value={form.techblogUrl}
-                  onChange={setField("techblogUrl")}
-                  className="w-full border rounded-lg px-3 py-2"
-                  placeholder="https://... (비우면 삭제)"
-                />
-              </div>
-
-              {errMsg && <div className="text-sm text-red-500">{errMsg}</div>}
-            </div>
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={close}
-                className="px-4 py-2 rounded-lg border hover:bg-gray-50"
-                disabled={saving}
-              >
-                취소
-              </button>
-              <button
-                onClick={save}
-                className="px-4 py-2 rounded-lg bg-smu-black text-white hover:text-smu-neonlime disabled:opacity-50"
-                disabled={saving}
-              >
-                {saving ? "저장중..." : "저장"}
-              </button>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <LinkOrDisabled href={computedGithubUrl} text="github 바로가기" />
+              <span className="text-[var(--color-smu-gray)]">·</span>
+              <LinkOrDisabled
+                href={user?.techblogUrl ?? user?.blogUrl}
+                text="tech blog 바로가기"
+              />
             </div>
           </div>
+        </div>
+
+        {/* small hint badge */}
+        <Badge tone="info">Profile</Badge>
+      </div>
+
+      <div className="mt-4 border-t border-gray-100" />
+
+      {/* compact fields */}
+      <div className="mt-2">
+        {/* Nickname */}
+        <FieldRow
+          label="nick"
+          right={
+            canEdit && editKey !== "nickname" ? (
+              <ActionButton onClick={() => startEdit("nickname")}>수정</ActionButton>
+            ) : null
+          }
+        >
+          {editKey === "nickname" && canEdit ? (
+            <div className="w-full">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  value={draft.nickname}
+                  onChange={setField("nickname")}
+                  className="
+                    w-full rounded-xl px-3 py-2 text-sm
+                    border border-gray-200 bg-white outline-none
+                    focus:border-[var(--color-smu-navy)]
+                    focus:ring-2 focus:ring-[var(--color-smu-navy)]/10
+                    transition
+                  "
+                  placeholder="닉네임"
+                />
+                <ActionButton
+                  onClick={runNicknameCheck}
+                  disabled={nickCheck.status === "checking" || saving.nickname}
+                >
+                  {nickCheck.status === "checking" ? "확인중" : "중복확인"}
+                </ActionButton>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="text-xs">
+                  {nickCheck.status !== "idle" ? (
+                    nickCheck.status === "ok" ? (
+                      <span className="text-[var(--color-smu-navy)] font-semibold">
+                        {nickCheck.msg}
+                      </span>
+                    ) : (
+                      <span className="text-red-600 font-semibold">
+                        {nickCheck.msg}
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-[var(--color-smu-gray)]">
+                      중복확인 후 저장
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <ActionButton
+                    onClick={() => cancelEdit("nickname")}
+                    disabled={saving.nickname}
+                  >
+                    취소
+                  </ActionButton>
+                  <ActionButton
+                    variant="primary"
+                    onClick={saveNickname}
+                    disabled={saving.nickname}
+                  >
+                    저장
+                  </ActionButton>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <span className="font-semibold">
+              {initial.nickname || (
+                <span className="text-[var(--color-smu-gray)]">미등록</span>
+              )}
+            </span>
+          )}
+        </FieldRow>
+
+        {/* Email */}
+        <FieldRow
+          label="email"
+          right={
+            canEdit && editKey !== "email" ? (
+              <div className="flex gap-2">
+                <ActionButton onClick={() => startEdit("email")}>
+                  등록/변경
+                </ActionButton>
+                <ActionButton
+                  variant="danger"
+                  onClick={deleteEmailOnly}
+                  disabled={saving.email}
+                >
+                  삭제
+                </ActionButton>
+              </div>
+            ) : null
+          }
+        >
+          {editKey === "email" && canEdit ? (
+            <div className="w-full">
+              <input
+                value={draft.email}
+                onChange={setField("email")}
+                className="
+                  w-full rounded-xl px-3 py-2 text-sm
+                  border border-gray-200 bg-white outline-none
+                  focus:border-[var(--color-smu-navy)]
+                  focus:ring-2 focus:ring-[var(--color-smu-navy)]/10
+                  transition
+                "
+                placeholder="example@email.com (비우면 삭제)"
+              />
+
+              <div className="mt-2 flex items-center justify-end gap-2">
+                {msg.email.text ? <Badge tone={msg.email.tone}>{msg.email.text}</Badge> : null}
+                <ActionButton onClick={() => cancelEdit("email")} disabled={saving.email}>
+                  취소
+                </ActionButton>
+                <ActionButton variant="primary" onClick={saveEmail} disabled={saving.email}>
+                  저장
+                </ActionButton>
+              </div>
+            </div>
+          ) : (
+            <span className="text-[var(--color-smu-black)]">
+              {initial.email ? (
+                <span className="font-semibold">{initial.email}</span>
+              ) : (
+                <span className="text-[var(--color-smu-gray)]">미등록</span>
+              )}
+              {msg.email.text ? (
+                <span className="ml-2">
+                  <Badge tone={msg.email.tone}>{msg.email.text}</Badge>
+                </span>
+              ) : null}
+            </span>
+          )}
+        </FieldRow>
+
+        {/* GitHub URL */}
+        <FieldRow
+          label="github"
+          right={
+            canEdit && editKey !== "githubUrl" ? (
+              <div className="flex gap-2">
+                <ActionButton onClick={() => startEdit("githubUrl")}>
+                  등록/변경
+                </ActionButton>
+                <ActionButton
+                  variant="danger"
+                  onClick={deleteGithubOnly}
+                  disabled={saving.githubUrl}
+                >
+                  삭제
+                </ActionButton>
+              </div>
+            ) : null
+          }
+        >
+          {editKey === "githubUrl" && canEdit ? (
+            <div className="w-full">
+              <input
+                value={draft.githubUrl}
+                onChange={setField("githubUrl")}
+                className="
+                  w-full rounded-xl px-3 py-2 text-sm
+                  border border-gray-200 bg-white outline-none
+                  focus:border-[var(--color-smu-navy)]
+                  focus:ring-2 focus:ring-[var(--color-smu-navy)]/10
+                  transition
+                "
+                placeholder="https://github.com/username (비우면 삭제)"
+              />
+
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <LinkOrDisabled href={normalize(draft.githubUrl)} text="미리보기" />
+                <div className="flex items-center gap-2">
+                  {msg.githubUrl.text ? (
+                    <Badge tone={msg.githubUrl.tone}>{msg.githubUrl.text}</Badge>
+                  ) : null}
+                  <ActionButton
+                    onClick={() => cancelEdit("githubUrl")}
+                    disabled={saving.githubUrl}
+                  >
+                    취소
+                  </ActionButton>
+                  <ActionButton
+                    variant="primary"
+                    onClick={saveGithub}
+                    disabled={saving.githubUrl}
+                  >
+                    저장
+                  </ActionButton>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <span>
+              {normalize(initial.githubUrl) ? (
+                <LinkOrDisabled href={initial.githubUrl} text="github 바로가기" />
+              ) : (
+                <span className="text-[var(--color-smu-gray)]">미등록</span>
+              )}
+              {msg.githubUrl.text ? (
+                <span className="ml-2">
+                  <Badge tone={msg.githubUrl.tone}>{msg.githubUrl.text}</Badge>
+                </span>
+              ) : null}
+            </span>
+          )}
+        </FieldRow>
+
+        {/* Tech Blog URL */}
+        <FieldRow
+          label="blog"
+          right={
+            canEdit && editKey !== "techblogUrl" ? (
+              <div className="flex gap-2">
+                <ActionButton onClick={() => startEdit("techblogUrl")}>
+                  등록/변경
+                </ActionButton>
+                <ActionButton
+                  variant="danger"
+                  onClick={deleteTechblogOnly}
+                  disabled={saving.techblogUrl}
+                >
+                  삭제
+                </ActionButton>
+              </div>
+            ) : null
+          }
+        >
+          {editKey === "techblogUrl" && canEdit ? (
+            <div className="w-full">
+              <input
+                value={draft.techblogUrl}
+                onChange={setField("techblogUrl")}
+                className="
+                  w-full rounded-xl px-3 py-2 text-sm
+                  border border-gray-200 bg-white outline-none
+                  focus:border-[var(--color-smu-navy)]
+                  focus:ring-2 focus:ring-[var(--color-smu-navy)]/10
+                  transition
+                "
+                placeholder="https://... (비우면 삭제)"
+              />
+
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <LinkOrDisabled href={normalize(draft.techblogUrl)} text="미리보기" />
+                <div className="flex items-center gap-2">
+                  {msg.techblogUrl.text ? (
+                    <Badge tone={msg.techblogUrl.tone}>{msg.techblogUrl.text}</Badge>
+                  ) : null}
+                  <ActionButton
+                    onClick={() => cancelEdit("techblogUrl")}
+                    disabled={saving.techblogUrl}
+                  >
+                    취소
+                  </ActionButton>
+                  <ActionButton
+                    variant="primary"
+                    onClick={saveTechblog}
+                    disabled={saving.techblogUrl}
+                  >
+                    저장
+                  </ActionButton>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <span>
+              {normalize(initial.techblogUrl) ? (
+                <LinkOrDisabled href={initial.techblogUrl} text="tech blog 바로가기" />
+              ) : (
+                <span className="text-[var(--color-smu-gray)]">미등록</span>
+              )}
+              {msg.techblogUrl.text ? (
+                <span className="ml-2">
+                  <Badge tone={msg.techblogUrl.tone}>{msg.techblogUrl.text}</Badge>
+                </span>
+              ) : null}
+            </span>
+          )}
+        </FieldRow>
+      </div>
+
+      {!canEdit && (
+        <div className="mt-3 text-xs text-[var(--color-smu-gray)]">
+          * 이 섹션은 읽기 전용입니다.
         </div>
       )}
     </div>
