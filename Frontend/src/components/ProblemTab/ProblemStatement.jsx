@@ -9,7 +9,7 @@ export default function ProblemStatement() {
             두 수 비교하기
           </h1>
 
-          {/* 상태/난이도 뱃지 자리 (선택) */}
+          {/* 상태/난이도 뱃지 자리 */}
           {/* <span className="shrink-0 rounded-full border border-smu-gray/30 bg-smu-base px-2 py-1 text-xs text-smu-navy">
             Bronze
           </span> */}

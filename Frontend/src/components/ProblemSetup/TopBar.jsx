@@ -70,7 +70,7 @@ export default function TopBar({ onRun, onSubmit, isBusy, busyLabel }) {
           <div className="w-px bg-smu-gray/20" />
           <TopBarMenuButton>설정</TopBarMenuButton>
           <div className="w-px bg-smu-gray/20" />
-          <TopBarMenuButton>프로필</TopBarMenuButton>
+          <TopBarMenuButton>북마크</TopBarMenuButton>
         </div>
       </div>
     </header>

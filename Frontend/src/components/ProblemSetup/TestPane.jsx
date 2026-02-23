@@ -86,7 +86,7 @@ export default function TestPane({ judgeView }) {
         </div>
       )}
 
-      {/* Result box (height 유지) */}
+      {/* Result box */}
       <div className="mt-2 h-[calc(100%-32px)] overflow-auto rounded-xl border border-smu-gray/20 bg-white p-3 text-sm">
         {data ? (
           <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-5 text-smu-black">

@@ -16,28 +16,28 @@ export default function Home() {
   ];
 
   return (
-    <div className="w-full bg-[var(--color-smu-base)] text-[var(--color-smu-black)]">
+    <div className="w-full bg-smu-base text-smu-black">
       {/* ===== Hero ===== */}
       <section className="max-w-[1200px] mx-auto px-6 pt-16 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           {/* Left copy */}
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--color-smu-gray)] bg-white">
-              <span className="w-2 h-2 rounded-full bg-[var(--color-smu-neonlime)]" />
-              <span className="text-sm text-[var(--color-smu-navy)]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-smu-gray bg-white">
+              <span className="w-2 h-2 rounded-full bg-smu-neonlime" />
+              <span className="text-sm text-smu-navy">
                 SolveMeUp · Coding Practice Platform
               </span>
             </div>
 
-            <h1 className="mt-5 text-4xl lg:text-5xl font-extrabold leading-tight text-[var(--color-smu-black)]">
+            <h1 className="mt-5 text-4xl lg:text-5xl font-extrabold leading-tight text-smu-black">
               매일 1문제,
               <br />
-              <span className="text-[var(--color-smu-navy)]">
+              <span className="text-smu-navy">
                 풀이 흐름을 만들다
               </span>
             </h1>
 
-            <p className="mt-6 text-[17px] leading-relaxed text-[var(--color-smu-navy)]">
+            <p className="mt-6 text-[17px] leading-relaxed text-smu-navy">
               문제 풀이부터 실행·제출·기록까지 한 번에.
               <br />
               안정적인 채점 흐름과 깔끔한 UI로 학습 루틴을 이어가세요.
@@ -47,8 +47,8 @@ export default function Home() {
               <Link
                 to="/problems"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold
-                  bg-[var(--color-smu-neonlime)] text-[var(--color-smu-black)]
-                  hover:bg-[var(--color-smu-navy)] hover:text-[var(--color-smu-base)]
+                  bg-smu-neonlime text-smu-black
+                  hover:bg-smu-navy hover:text-smu-base
                   transition"
               >
                 <span>문제 풀기</span>
@@ -60,9 +60,9 @@ export default function Home() {
               <Link
                 to="/ranking"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold
-                  border border-[var(--color-smu-gray)] text-[var(--color-smu-navy)]
-                  bg-white hover:bg-[var(--color-smu-navy)] hover:text-[var(--color-smu-base)]
-                  hover:border-[var(--color-smu-navy)]
+                  border border-smu-gray text-smu-navy
+                  bg-white hover:bg-smu-navy hover:text-smu-base
+                  hover:border-smu-navy
                   transition"
               >
                 <span>랭킹 보기</span>
@@ -72,13 +72,13 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="mt-6 text-sm text-[var(--color-smu-gray)]">
+            <div className="mt-6 text-sm text-smu-gray">
               Tip: 문제 페이지에서{" "}
-              <span className="font-semibold text-[var(--color-smu-navy)]">
+              <span className="font-semibold text-smu-navy">
                 실행
               </span>
               으로 빠르게 확인하고,{" "}
-              <span className="font-semibold text-[var(--color-smu-navy)]">
+              <span className="font-semibold text-smu-navy">
                 제출
               </span>
               로 기록을 남기세요.
@@ -126,18 +126,18 @@ export default function Home() {
       <section className="max-w-[1200px] mx-auto px-6 py-12">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-[var(--color-smu-black)]">
+            <h2 className="text-2xl font-bold text-smu-black">
               인기 문제
             </h2>
-            <p className="mt-2 text-[15px] text-[var(--color-smu-gray)]">
+            <p className="mt-2 text-[15px] text-smu-gray">
               사람들이 많이 푸는 문제로 빠르게 워밍업하세요.
             </p>
           </div>
 
           <Link
             to="/problems"
-            className="hidden sm:inline-flex items-center gap-2 text-[var(--color-smu-navy)] font-semibold
-              hover:text-[var(--color-smu-black)] transition"
+            className="hidden sm:inline-flex items-center gap-2 text-smu-navy font-semibold
+              hover:text-smu-black transition"
           >
             전체 문제 보기 <span>→</span>
           </Link>
@@ -152,10 +152,10 @@ export default function Home() {
 
       {/* ===== Tracks / Features ===== */}
       <section className="max-w-[1200px] mx-auto px-6 py-12">
-        <h2 className="text-2xl font-bold text-[var(--color-smu-black)]">
+        <h2 className="text-2xl font-bold text-smu-black">
           학습 트랙
         </h2>
-        <p className="mt-2 text-[15px] text-[var(--color-smu-gray)]">
+        <p className="mt-2 text-[15px] text-smu-gray">
           목표에 맞춘 루틴으로 꾸준히 쌓아보세요.
         </p>
 
@@ -187,10 +187,10 @@ export default function Home() {
           <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-white">
             <div className="p-8 sm:p-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div>
-                <h3 className="text-3xl font-extrabold text-[var(--color-smu-black)]">
+                <h3 className="text-3xl font-extrabold text-smu-black">
                   오늘의 루틴을 시작해요
                 </h3>
-                <p className="mt-3 text-[15px] text-[var(--color-smu-navy)]">
+                <p className="mt-3 text-[15px] text-smu-navy">
                   한 문제부터. 실행하고 제출하면 기록이 남고, 다음이 쉬워집니다.
                 </p>
               </div>
@@ -199,8 +199,8 @@ export default function Home() {
                 <Link
                   to="/problems"
                   className="group inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl font-semibold
-                    bg-[var(--color-smu-navy)] text-[var(--color-smu-base)]
-                    hover:bg-[var(--color-smu-neonlime)] hover:text-[var(--color-smu-black)]
+                    bg-smu-navy text-smu-base
+                    hover:bg-smu-neonlime hover:text-smu-black
                     transition"
                 >
                   문제 목록으로{" "}
@@ -210,8 +210,8 @@ export default function Home() {
                 <Link
                   to="/community"
                   className="group inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl font-semibold
-                    border border-[var(--color-smu-gray)] bg-white text-[var(--color-smu-navy)]
-                    hover:border-[var(--color-smu-navy)] hover:bg-[var(--color-smu-base)]
+                    border border-smu-gray bg-white text-smu-navy
+                    hover:border-smu-navy hover:bg-smu-base
                     transition"
                 >
                   커뮤니티 둘러보기{" "}
@@ -220,7 +220,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="px-8 sm:px-10 py-5 border-t border-gray-100 bg-[var(--color-smu-base)] text-sm text-[var(--color-smu-gray)]">
+            <div className="px-8 sm:px-10 py-5 border-t border-gray-100 bg-smu-base text-sm text-smu-gray">
               안정적인 운영을 위해 채점 대기/결과 상태를 명확하게 표시하고, 기록은
               일관되게 동기화합니다.
             </div>
@@ -291,17 +291,17 @@ function TabsPreviewCarousel() {
 
   return (
     <div className="relative">
-      <div className="absolute -top-6 -right-4 w-24 h-24 rounded-2xl bg-[var(--color-smu-neonlime)] opacity-40 blur-xl" />
-      <div className="absolute -bottom-6 -left-4 w-24 h-24 rounded-2xl bg-[var(--color-smu-navy)] opacity-30 blur-xl" />
+      <div className="absolute -top-6 -right-4 w-24 h-24 rounded-2xl bg-smu-neonlime opacity-40 blur-xl" />
+      <div className="absolute -bottom-6 -left-4 w-24 h-24 rounded-2xl bg-smu-navy opacity-30 blur-xl" />
 
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-smu-gray)]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-smu-gray)]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-smu-gray)]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-smu-gray" />
+            <span className="w-2.5 h-2.5 rounded-full bg-smu-gray" />
+            <span className="w-2.5 h-2.5 rounded-full bg-smu-gray" />
           </div>
-          <div className="text-sm text-[var(--color-smu-gray)]">
+          <div className="text-sm text-smu-gray">
             {s.rightHint}
           </div>
         </div>
@@ -317,8 +317,8 @@ function TabsPreviewCarousel() {
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition border
                     ${
                       isActive
-                        ? "bg-[var(--color-smu-navy)] text-[var(--color-smu-base)] border-[var(--color-smu-navy)]"
-                        : "bg-white text-[var(--color-smu-navy)] border-gray-100 hover:bg-[var(--color-smu-base)]"
+                        ? "bg-smu-navy text-smu-base border-smu-navy"
+                        : "bg-white text-smu-navy border-gray-100 hover:bg-smu-base"
                     }`}
                 >
                   {x.tab}
@@ -326,7 +326,7 @@ function TabsPreviewCarousel() {
                     className={`block h-[2px] rounded-full mt-1 transition
                       ${
                         isActive
-                          ? "bg-[var(--color-smu-neonlime)]"
+                          ? "bg-smu-neonlime"
                           : "bg-transparent"
                       }`}
                   />
@@ -339,26 +339,26 @@ function TabsPreviewCarousel() {
         <div className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-[var(--color-smu-gray)]">
+              <div className="text-sm text-smu-gray">
                 {s.titleTop}
               </div>
-              <div className="text-lg font-semibold text-[var(--color-smu-black)]">
+              <div className="text-lg font-semibold text-smu-black">
                 {s.title}
               </div>
             </div>
 
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-smu-neonlime)] text-[var(--color-smu-black)]">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-smu-neonlime text-smu-black">
               {s.badge}
             </span>
           </div>
 
-          <div className="mt-4 rounded-xl border border-gray-100 bg-[var(--color-smu-base)] p-4">
+          <div className="mt-4 rounded-xl border border-gray-100 bg-smu-base p-4">
             {s.contentType === "problem" && (
               <>
-                <div className="text-xs text-[var(--color-smu-gray)] mb-2">
+                <div className="text-xs text-smu-gray mb-2">
                   example.js
                 </div>
-                <pre className="text-[13px] leading-relaxed text-[var(--color-smu-navy)] whitespace-pre-wrap">
+                <pre className="text-[13px] leading-relaxed text-smu-navy whitespace-pre-wrap">
 {`function bfs(grid) {
   const q = [[0,0]];
   while (q.length) {
@@ -372,7 +372,7 @@ function TabsPreviewCarousel() {
                   {["BFS", "Graph", "Queue"].map((t) => (
                     <span
                       key={t}
-                      className="px-2 py-1 rounded-lg text-xs bg-white border border-gray-100 text-[var(--color-smu-navy)]"
+                      className="px-2 py-1 rounded-lg text-xs bg-white border border-gray-100 text-smu-navy"
                     >
                       {t}
                     </span>
@@ -397,19 +397,19 @@ function TabsPreviewCarousel() {
 
             {s.contentType === "solution" && (
               <>
-                <div className="text-xs text-[var(--color-smu-gray)] mb-2">
+                <div className="text-xs text-smu-gray mb-2">
                   핵심 아이디어
                 </div>
-                <ul className="text-[13px] text-[var(--color-smu-navy)] leading-relaxed list-disc pl-5 space-y-1">
+                <ul className="text-[13px] text-smu-navy leading-relaxed list-disc pl-5 space-y-1">
                   <li>visited로 중복 방문 방지</li>
                   <li>큐 기반 BFS로 최단 흐름 유지</li>
                   <li>경계 조건(벽/범위) 체크</li>
                 </ul>
                 <div className="mt-3 rounded-lg bg-white border border-gray-100 p-3">
-                  <div className="text-xs text-[var(--color-smu-gray)]">
+                  <div className="text-xs text-smu-gray">
                     pseudo
                   </div>
-                  <pre className="text-[12px] text-[var(--color-smu-navy)] whitespace-pre-wrap">
+                  <pre className="text-[12px] text-smu-navy whitespace-pre-wrap">
 {`push(start)
 while queue:
   pop()
@@ -447,7 +447,7 @@ while queue:
           <div className="mt-4 flex justify-end">
             <Link
               to="/problems"
-              className="text-sm font-semibold text-[var(--color-smu-navy)] hover:text-[var(--color-smu-black)] transition"
+              className="text-sm font-semibold text-smu-navy hover:text-smu-black transition"
             >
               문제 페이지 보기 →
             </Link>
@@ -465,14 +465,14 @@ function SubmissionRow({ status, meta }) {
       <div className="flex items-center gap-2">
         <span
           className={`w-2.5 h-2.5 rounded-full ${
-            ok ? "bg-[var(--color-smu-neonlime)]" : "bg-[var(--color-smu-gray)]"
+            ok ? "bg-smu-neonlime" : "bg-smu-gray"
           }`}
         />
-        <div className="text-sm font-semibold text-[var(--color-smu-black)]">
+        <div className="text-sm font-semibold text-smu-black">
           {status}
         </div>
       </div>
-      <div className="text-xs text-[var(--color-smu-gray)]">{meta}</div>
+      <div className="text-xs text-smu-gray">{meta}</div>
     </div>
   );
 }
@@ -480,10 +480,10 @@ function SubmissionRow({ status, meta }) {
 function DiscussRow({ title, meta }) {
   return (
     <div className="bg-white border border-gray-100 rounded-xl px-4 py-3">
-      <div className="text-sm font-semibold text-[var(--color-smu-black)]">
+      <div className="text-sm font-semibold text-smu-black">
         {title}
       </div>
-      <div className="mt-1 text-xs text-[var(--color-smu-gray)]">{meta}</div>
+      <div className="mt-1 text-xs text-smu-gray">{meta}</div>
     </div>
   );
 }
@@ -494,11 +494,11 @@ function TabHighlightCard({ label, title, desc, accent = "lime" }) {
   return (
     <div
       className="group bg-white rounded-2xl p-7 border border-gray-100 shadow-sm
-        hover:bg-[var(--color-smu-navy)] hover:border-[var(--color-smu-navy)]
+        hover:bg-smu-navy hover:border-smu-navy
         hover:shadow-md transition"
     >
       <div className="flex items-center justify-between">
-        <div className="text-sm text-[var(--color-smu-gray)] group-hover:text-[var(--color-smu-base)]/80 transition">
+        <div className="text-sm text-smu-gray group-hover:text-smu-base/80 transition">
           {label}
         </div>
 
@@ -506,22 +506,22 @@ function TabHighlightCard({ label, title, desc, accent = "lime" }) {
           className={`w-2.5 h-2.5 rounded-full transition
             ${
               isLime
-                ? "bg-[var(--color-smu-neonlime)]"
-                : "bg-[var(--color-smu-base)]"
+                ? "bg-smu-neonlime"
+                : "bg-smu-base"
             }
-            group-hover:bg-[var(--color-smu-neonlime)]`}
+            group-hover:bg-smu-neonlime`}
         />
       </div>
 
-      <div className="mt-4 text-2xl font-extrabold leading-snug text-[var(--color-smu-black)] group-hover:text-[var(--color-smu-base)] transition">
+      <div className="mt-4 text-2xl font-extrabold leading-snug text-smu-black group-hover:text-smu-base transition">
         {title}
       </div>
 
-      <div className="mt-2 text-[15px] text-[var(--color-smu-gray)] group-hover:text-[var(--color-smu-base)]/80 transition">
+      <div className="mt-2 text-[15px] text-smu-gray group-hover:text-smu-base/80 transition">
         {desc}
       </div>
 
-      <div className="mt-6 h-[3px] w-10 rounded-full transition bg-[var(--color-smu-base)] group-hover:bg-[var(--color-smu-neonlime)]" />
+      <div className="mt-6 h-[3px] w-10 rounded-full transition bg-smu-base group-hover:bg-smu-neonlime" />
     </div>
   );
 }
@@ -531,25 +531,25 @@ function ProblemCard({ level, title, tags }) {
     <Link
       to="/problems"
       className="group block bg-white rounded-2xl p-6 border border-gray-100 shadow-sm
-        hover:bg-[var(--color-smu-black)] hover:border-[var(--color-smu-black)]
+        hover:bg-smu-black hover:border-smu-black
         transition"
     >
       <div className="flex items-center justify-between gap-3">
         <span
           className="px-3 py-1 rounded-full text-xs font-semibold
-          bg-[var(--color-smu-base)] text-[var(--color-smu-navy)]
-          group-hover:bg-[var(--color-smu-neonlime)] group-hover:text-[var(--color-smu-black)]
+          bg-smu-base text-smu-navy
+          group-hover:bg-smu-neonlime group-hover:text-smu-black
           transition"
         >
           {level}
         </span>
 
-        <span className="text-xs text-[var(--color-smu-gray)] group-hover:text-[var(--color-smu-base)]/70 transition">
+        <span className="text-xs text-smu-gray group-hover:text-smu-base/70 transition">
           SolveMeUp Pick
         </span>
       </div>
 
-      <div className="mt-3 text-lg font-bold text-[var(--color-smu-black)] group-hover:text-[var(--color-smu-base)] transition">
+      <div className="mt-3 text-lg font-bold text-smu-black group-hover:text-smu-base transition">
         {title}
       </div>
 
@@ -558,8 +558,8 @@ function ProblemCard({ level, title, tags }) {
           <span
             key={idx}
             className="px-2 py-1 rounded-lg text-xs border border-gray-100 bg-white
-              text-[var(--color-smu-navy)]
-              group-hover:bg-transparent group-hover:border-[var(--color-smu-base)]/20 group-hover:text-[var(--color-smu-base)]/90
+              text-smu-navy
+              group-hover:bg-transparent group-hover:border-smu-base/20 group-hover:text-smu-base/90
               transition"
           >
             {t}
@@ -567,7 +567,7 @@ function ProblemCard({ level, title, tags }) {
         ))}
       </div>
 
-      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-smu-navy)] group-hover:text-[var(--color-smu-neonlime)] transition">
+      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-smu-navy group-hover:text-smu-neonlime transition">
         바로 풀기 <span>→</span>
       </div>
     </Link>
@@ -576,21 +576,21 @@ function ProblemCard({ level, title, tags }) {
 
 function TrackCard({ title, desc, badge }) {
   return (
-    <div className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:border-[var(--color-smu-navy)] hover:shadow-md transition">
+    <div className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:border-smu-navy hover:shadow-md transition">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-lg font-bold text-[var(--color-smu-black)] group-hover:text-[var(--color-smu-navy)] transition">
+        <div className="text-lg font-bold text-smu-black group-hover:text-smu-navy transition">
           {title}
         </div>
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-smu-neonlime)] text-[var(--color-smu-black)] group-hover:bg-[var(--color-smu-navy)] group-hover:text-[var(--color-smu-base)] transition">
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-smu-neonlime text-smu-black group-hover:bg-smu-navy group-hover:text-smu-base transition">
           {badge}
         </span>
       </div>
 
-      <div className="mt-2 text-[15px] text-[var(--color-smu-gray)]">{desc}</div>
+      <div className="mt-2 text-[15px] text-smu-gray">{desc}</div>
 
       <Link
         to="/problems"
-        className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-smu-navy)] hover:text-[var(--color-smu-black)] transition"
+        className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-smu-navy hover:text-smu-black transition"
       >
         트랙 시작 <span>→</span>
       </Link>
@@ -600,15 +600,15 @@ function TrackCard({ title, desc, badge }) {
 
 function FeatureCard({ title, desc }) {
   return (
-    <div className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:bg-[var(--color-smu-navy)] hover:border-[var(--color-smu-navy)] transition">
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold bg-[var(--color-smu-neonlime)] text-[var(--color-smu-black)] group-hover:bg-white group-hover:text-[var(--color-smu-navy)] transition">
+    <div className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:bg-smu-navy hover:border-smu-navy transition">
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold bg-smu-neonlime text-smu-black group-hover:bg-white group-hover:text-smu-navy transition">
         ✓
       </div>
 
-      <h4 className="mt-4 text-lg font-bold text-[var(--color-smu-black)] group-hover:text-[var(--color-smu-base)] transition">
+      <h4 className="mt-4 text-lg font-bold text-smu-black group-hover:text-smu-base transition">
         {title}
       </h4>
-      <p className="mt-2 text-[15px] leading-relaxed text-[var(--color-smu-navy)] group-hover:text-[var(--color-smu-base)]/90 transition">
+      <p className="mt-2 text-[15px] leading-relaxed text-smu-navy group-hover:text-smu-base/90 transition">
         {desc}
       </p>
     </div>
@@ -618,10 +618,10 @@ function FeatureCard({ title, desc }) {
 function MiniChip({ label, value, strong }) {
   return (
     <div className="rounded-xl bg-white border border-gray-100 px-4 py-3">
-      <div className="text-xs text-[var(--color-smu-gray)]">{label}</div>
+      <div className="text-xs text-smu-gray">{label}</div>
       <div
         className={`mt-1 text-sm font-semibold ${
-          strong ? "text-[var(--color-smu-navy)]" : "text-[var(--color-smu-black)]"
+          strong ? "text-smu-navy" : "text-smu-black"
         }`}
       >
         {value}
