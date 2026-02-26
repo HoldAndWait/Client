@@ -30,7 +30,7 @@ const Navbar = () => {
         sticky top-0 z-50 w-full
         border-b border-gray-100
         bg-white/80 backdrop-blur
-        text-[var(--color-smu-black)]
+        text-smu-black
       "
     >
       <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between gap-4">
@@ -42,7 +42,7 @@ const Navbar = () => {
           >
             SolveMeUp
           </Link>
-          <span className="hidden md:inline text-sm text-[var(--color-smu-gray)]">
+          <span className="hidden md:inline text-sm text-smu-gray">
             Coding Practice Platform
           </span>
         </div>
@@ -62,8 +62,8 @@ const Navbar = () => {
                 px-3 py-2 rounded-xl text-sm font-semibold transition
                 ${
                   isActive(item.to)
-                    ? "bg-[var(--color-smu-base)] text-[var(--color-smu-black)]"
-                    : "text-[var(--color-smu-navy)] hover:bg-[var(--color-smu-base)] hover:text-[var(--color-smu-black)]"
+                    ? "bg-smu-base text-smu-black"
+                    : "text-smu-navy hover:bg-smu-base hover:text-smu-black"
                 }
               `}
             >
@@ -72,17 +72,17 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* ===== Auth Area (기능 변경 없음) ===== */}
+        {/* ===== Auth Area ===== */}
         <div className="flex items-center gap-3">
           {!isLoading && !isAuthed && (
             <Link
               to="/mypage"
               className="
                 px-4 py-2 rounded-2xl text-sm font-semibold transition
-                bg-[var(--color-smu-neonlime)]
-                text-[var(--color-smu-black)]
-                hover:bg-[var(--color-smu-navy)]
-                hover:text-[var(--color-smu-base)]
+                bg-smu-neonlime
+                text-smu-black
+                hover:bg-smu-navy
+                hover:text-smu-base
               "
             >
               로그인
@@ -96,8 +96,8 @@ const Navbar = () => {
                 className="
                   inline-flex items-center justify-center
                   w-11 h-11 rounded-2xl
-                  text-[var(--color-smu-navy)]
-                  hover:bg-[var(--color-smu-base)]
+                  text-smu-navy
+                  hover:bg-smu-base
                   transition
                 "
               >
@@ -112,9 +112,9 @@ const Navbar = () => {
                 className="
                   px-4 py-2 rounded-2xl text-sm font-semibold transition
                   border border-gray-200
-                  text-[var(--color-smu-navy)]
-                  hover:border-[var(--color-smu-navy)]
-                  hover:bg-[var(--color-smu-base)]
+                  text-smu-navy
+                  hover:border-smu-navy
+                  hover:bg-smu-base
                 "
               >
                 로그아웃
@@ -140,8 +140,8 @@ const Navbar = () => {
                 text-sm font-semibold px-2 py-2 rounded-xl transition
                 ${
                   isActive(item.to)
-                    ? "bg-[var(--color-smu-base)] text-[var(--color-smu-black)]"
-                    : "text-[var(--color-smu-navy)] hover:bg-[var(--color-smu-base)]"
+                    ? "bg-smu-base text-smu-black"
+                    : "text-smu-navy hover:bg-smu-base"
                 }
               `}
             >

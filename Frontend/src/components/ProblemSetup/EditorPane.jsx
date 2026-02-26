@@ -24,8 +24,6 @@ export default function EditorPane({
             <option value="javascript">JavaScript</option>
           </select>
 
-          {/* 여기 실행 버튼은 TopBar에 있으니 보통 제거 */}
-          {/* 필요하면 showHeader=false로 숨길 수도 있음 */}
         </div>
       )}
 

@@ -5,7 +5,7 @@ export default function Archive() {
   const [q, setQ] = useState("");
   const [activeCat, setActiveCat] = useState("All");
 
-  // ✅ 위키 느낌용 더미 문서 (실데이터 붙일 때 이 배열만 교체)
+  // 위키 느낌용 더미 문서 (실데이터 붙일 때 이 배열만 교체)
   const docs = useMemo(
     () => [
       {
@@ -85,18 +85,18 @@ export default function Archive() {
   }, [q, activeCat, docs]);
 
   return (
-    <div className="w-full min-h-screen bg-[var(--color-smu-base)] text-[var(--color-smu-black)]">
+    <div className="w-full min-h-screen bg-smu-base text-smu-black">
       {/* ===== Navy Hero ===== */}
-      <header className="relative bg-[var(--color-smu-navy)] text-[var(--color-smu-base)] py-10">
+      <header className="relative bg-smu-navy text-smu-base py-10">
         <div className="absolute inset-0 opacity-30 pointer-events-none">
-          <div className="absolute -top-10 -right-10 w-56 h-56 rounded-3xl bg-[var(--color-smu-neonlime)] blur-3xl" />
+          <div className="absolute -top-10 -right-10 w-56 h-56 rounded-3xl bg-smu-neonlime blur-3xl" />
           <div className="absolute -bottom-14 -left-10 w-64 h-64 rounded-3xl bg-black blur-3xl opacity-40" />
         </div>
 
-        {/* ✅ padding 조정: 위/아래 여백을 더 주고, 헤더 요소 간 간격 정리 */}
+        {/* 설명칩 부분 */}
         <div className="max-w-[1200px] mx-auto px-6 pt-10 pb-12 relative">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-smu-neonlime)]" />
+            <span className="w-2 h-2 rounded-full bg-smu-neonlime" />
             <span className="text-sm text-white/90">
               SolveMeUp Archive · Community Knowledge Base
             </span>
@@ -114,14 +114,14 @@ export default function Archive() {
               </p>
             </div>
 
-            {/* ✅ 버튼 크기/비율 조정: 너무 크지 않게, 높이 통일 */}
+            {/* 버튼 크기/비율 조정 */}
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => alert("문서 작성은 추후 오픈 예정입니다.")}
                 className="h-11 px-5 rounded-2xl font-semibold
-                  bg-white text-[var(--color-smu-navy)]
-                  hover:bg-[var(--color-smu-neonlime)] hover:text-[var(--color-smu-black)]
+                  bg-white text-smu-navy
+                  hover:bg-smu-neonlime hover:text-smu-black
                   transition"
               >
                 문서 작성
@@ -139,7 +139,7 @@ export default function Archive() {
             </div>
           </div>
 
-          {/* ✅ 검색 */}
+          {/* 검색 */}
           <div className="mt-8">
             <div className="relative max-w-[920px]">
               <input
@@ -147,9 +147,9 @@ export default function Archive() {
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="문서 검색 (예: BFS, 인덱스, 트랜잭션, 데드락...)"
                 className="w-full rounded-2xl px-5 py-4 pr-12
-                  bg-white text-[var(--color-smu-black)]
+                  bg-white text-smu-black
                   border border-white/30 outline-none
-                  focus:border-[var(--color-smu-neonlime)]
+                  focus:border-smu-neonlime
                   transition"
               />
             </div>
@@ -158,24 +158,24 @@ export default function Archive() {
         </div>
       </header>
 
-      {/* ===== Main list (사이드바/트렌딩/최근수정 제거) ===== */}
+      {/* ===== Main list ===== */}
       <div className="max-w-[1200px] mx-auto px-6 py-12">
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           {/* list header */}
           <div className="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <div className="text-sm text-[var(--color-smu-gray)]">
+              <div className="text-sm text-smu-gray">
                 카테고리{" "}
-                <span className="font-semibold text-[var(--color-smu-navy)]">
+                <span className="font-semibold text-smu-navy">
                   {activeCat === "All" ? "전체" : activeCat}
                 </span>{" "}
                 · 결과{" "}
-                <span className="font-semibold text-[var(--color-smu-navy)]">
+                <span className="font-semibold text-smu-navy">
                   {filtered.length}
                 </span>
                 개
               </div>
-              <div className="mt-1 text-lg font-extrabold text-[var(--color-smu-black)]">
+              <div className="mt-1 text-lg font-extrabold text-smu-black">
                 문서 목록
               </div>
             </div>
@@ -185,9 +185,9 @@ export default function Archive() {
               type="button"
               onClick={() => alert("정렬 기능은 추후 오픈 예정입니다.")}
               className="px-4 py-2 rounded-xl text-sm font-semibold
-                bg-[var(--color-smu-base)] border border-gray-100
-                text-[var(--color-smu-navy)]
-                hover:border-[var(--color-smu-navy)] transition"
+                bg-smu-base border border-gray-100
+                text-smu-navy
+                hover:border-smu-navy transition"
             >
               최신순 ▾
             </button>
@@ -199,17 +199,17 @@ export default function Archive() {
 
           {filtered.length === 0 && (
             <div className="p-12 text-center">
-              <div className="text-lg font-bold text-[var(--color-smu-black)]">
+              <div className="text-lg font-bold text-smu-black">
                 검색 결과가 없어요
               </div>
-              <div className="mt-2 text-sm text-[var(--color-smu-gray)]">
+              <div className="mt-2 text-sm text-smu-gray">
                 다른 키워드로 검색하거나, 새 문서를 만들어 보세요.
               </div>
             </div>
           )}
         </div>
 
-        <div className="mt-4 text-xs text-[var(--color-smu-gray)]">
+        <div className="mt-4 text-xs text-smu-gray">
           * 상세 페이지/편집/버전 관리는 확장 기능으로 단계적으로 공개됩니다.
         </div>
       </div>
@@ -220,10 +220,10 @@ export default function Archive() {
 function DocRow({ doc }) {
   const statusStyle =
     doc.status === "정리됨"
-      ? "bg-[var(--color-smu-neonlime)] text-[var(--color-smu-black)]"
+      ? "bg-smu-neonlime text-smu-black"
       : doc.status === "초안"
-      ? "bg-white text-[var(--color-smu-gray)] border border-gray-200"
-      : "bg-[var(--color-smu-base)] text-[var(--color-smu-navy)] border border-gray-100";
+      ? "bg-white text-smu-gray border border-gray-200"
+      : "bg-smu-base text-smu-navy border border-gray-100";
 
   return (
     <Link
@@ -232,12 +232,12 @@ function DocRow({ doc }) {
         e.preventDefault();
         alert("문서 상세는 추후 오픈 예정입니다.");
       }}
-      className="group block px-6 py-6 border-b border-gray-100 hover:bg-[var(--color-smu-base)] transition"
+      className="group block px-6 py-6 border-b border-gray-100 hover:bg-smu-base transition"
     >
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <div className="text-xl font-extrabold text-[var(--color-smu-black)] group-hover:text-[var(--color-smu-navy)] transition truncate">
+            <div className="text-xl font-extrabold text-smu-black group-hover:text-smu-navy transition truncate">
               {doc.title}
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusStyle}`}>
@@ -245,7 +245,7 @@ function DocRow({ doc }) {
             </span>
           </div>
 
-          <div className="mt-2 text-sm text-[var(--color-smu-gray)] leading-relaxed line-clamp-2">
+          <div className="mt-2 text-sm text-smu-gray leading-relaxed line-clamp-2">
             {doc.summary}
           </div>
 
@@ -254,8 +254,8 @@ function DocRow({ doc }) {
               <span
                 key={t}
                 className="px-2 py-1 rounded-lg text-xs bg-white border border-gray-100
-                  text-[var(--color-smu-navy)]
-                  group-hover:border-[var(--color-smu-navy)] group-hover:bg-transparent
+                  text-smu-navy
+                  group-hover:border-smu-navy group-hover:bg-transparent
                   transition"
               >
                 {t}
@@ -265,24 +265,24 @@ function DocRow({ doc }) {
         </div>
 
         <div className="shrink-0 text-right">
-          <div className="text-xs text-[var(--color-smu-gray)]">{doc.cat}</div>
+          <div className="text-xs text-smu-gray">{doc.cat}</div>
 
-          <div className="mt-1 text-sm font-semibold text-[var(--color-smu-navy)]">
+          <div className="mt-1 text-sm font-semibold text-smu-navy">
             {doc.updatedAt}
           </div>
 
-          <div className="mt-1 text-xs text-[var(--color-smu-gray)]">
+          <div className="mt-1 text-xs text-smu-gray">
             by {doc.by}
           </div>
 
-          <div className="mt-3 text-xs text-[var(--color-smu-gray)]">
+          <div className="mt-3 text-xs text-smu-gray">
             조회 {doc.reads.toLocaleString()}
           </div>
         </div>
       </div>
 
       {/* subtle underline accent */}
-      <div className="mt-5 h-[3px] w-10 rounded-full bg-transparent group-hover:bg-[var(--color-smu-neonlime)] transition" />
+      <div className="mt-5 h-[3px] w-10 rounded-full bg-transparent group-hover:bg-smu-neonlime transition" />
     </Link>
   );
 }
