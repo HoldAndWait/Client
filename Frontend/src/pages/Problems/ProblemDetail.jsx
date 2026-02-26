@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { submitSolution } from "@api/problem"; 
 
 import TopBar from "@components/ProblemSetup/TopBar";
 import ProblemPane from "@components/ProblemSetup/ProblemPane";
@@ -12,11 +13,11 @@ import { fakeRunStart, fakeRunStatus } from "@api/fakeJudge";
 import useJudgePolling from "@hooks/useJudgePolling";
 
 export default function ProblemDetail() {
-  // ✅ 라우터에서 problemId 받고 있으면 이게 제일 깔끔
+  const problemId = 2; //임시
   const params = useParams();
-  const problemId = Number(params.problemId ?? 1);
+  //const problemId = Number(params.problemId ?? 1);
 
-  // ✅ EditorPane와 맞춰서: language는 "java/python/javascript" 같은 값 권장
+  // EditorPane와 맞춰서: language는 "java/python/javascript" 같은 값 권장
   // (너는 현재 "JAVA"로 잡아놨는데 EditorPane select 값이 "java"라면 mismatch 날 수 있음)
   const [language, setLanguage] = useState("java");
 
@@ -32,7 +33,7 @@ export default function ProblemDetail() {
   const [runId, setRunId] = useState(null);
   const [submissionId, setSubmissionId] = useState(null);
 
-  // ✅ 백엔드 enum이 JAVA/PYTHON/JAVASCRIPT면 여기서 매핑해서 보냄
+  // 백엔드 enum이 JAVA/PYTHON/JAVASCRIPT면 여기서 매핑해서 보냄
   const languageForServer = useMemo(() => {
     const map = {
       java: "JAVA",
@@ -62,7 +63,8 @@ export default function ProblemDetail() {
    *  Polling: Submit
    * ========================= */
   const submitPolling = useJudgePolling({
-    enabled: submissionId != null,
+    //enabled: submissionId != null,
+    enabled: false, // 지금은 제출만
     queryKey: submissionId,
     fetch: async (id) => (await api.get(`/api/submissions/${id}`)).data,
     isDone: (d) => d?.status === "DONE" || d?.status === "ERROR",
@@ -113,22 +115,28 @@ export default function ProblemDetail() {
   const onClickSubmit = async () => {
     if (isBusy) return;
 
+    // 이전 결과 초기화(선택)
     setRunId(null);
     setSubmissionId(null);
 
     try {
-      const res = await api.post("/api/judge/submit", {
-        problemId,
-        language: languageForServer,
+      const res = await submitSolution(problemId, {
+        language: languageForServer, // 서버 enum으로
         sourceCode,
       });
 
-      const nextSubmissionId = res?.data?.submissionId ?? res?.data?.judgeId;
-      if (nextSubmissionId == null) throw new Error("submissionId가 응답에 없습니다.");
+      const nextSubmissionId = res?.data?.submissionId;
+      alert(`제출 접수 완료! submissionId=${nextSubmissionId}`);
+
+      // "제출만 되게"라면 저장만 해두고 polling은 당장 안 돌려도 됨
       setSubmissionId(nextSubmissionId);
-    } catch (e) {
-      console.error(e);
-      alert("제출 요청에 실패했습니다.");
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message;
+
+      if (status === 401) alert("로그인이 필요합니다. (dev-login 후 다시 시도)");
+      else alert(`제출 실패${msg ? `: ${msg}` : ""}`);
+      console.error(err);
     }
   };
 
