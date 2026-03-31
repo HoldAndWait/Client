@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   const featuredProblems = [
-    { level: "Easy", title: "Two Sum Variants", tags: ["Array", "HashMap"] },
+    { level: "Easy", title: "두 수 비교하기", tags: ["Array", "HashMap"] },
     { level: "Medium", title: "LRU Cache Lite", tags: ["Design", "Queue"] },
     { level: "Medium", title: "Grid BFS Path", tags: ["BFS", "Graph"] },
     { level: "Hard", title: "Segment Tree Queries", tags: ["Tree", "Range"] },
@@ -279,6 +279,7 @@ function TabsPreviewCarousel() {
   );
 
   const [active, setActive] = useState(0);
+  const [visible, setVisible] = useState(0); // 실제로 보여주는 슬라이드
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -287,7 +288,18 @@ function TabsPreviewCarousel() {
     return () => clearInterval(id);
   }, [slides.length]);
 
-  const s = slides[active];
+  // active 바뀔 때 fade 처리
+  const [fading, setFading] = useState(false);
+  useEffect(() => {
+    setFading(true);
+    const t = setTimeout(() => {
+      setVisible(active);
+      setFading(false);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  const s = slides[visible];
 
   return (
     <div className="relative">
@@ -295,17 +307,18 @@ function TabsPreviewCarousel() {
       <div className="absolute -bottom-6 -left-4 w-24 h-24 rounded-2xl bg-smu-navy opacity-30 blur-xl" />
 
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+        {/* 상단 윈도우 바 */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-smu-gray" />
-            <span className="w-2.5 h-2.5 rounded-full bg-smu-gray" />
-            <span className="w-2.5 h-2.5 rounded-full bg-smu-gray" />
+            <span className="w-2.5 h-2.5 rounded-full bg-smu-neonlime" />
+            <span className="w-2.5 h-2.5 rounded-full bg-smu-navy" />
           </div>
-          <div className="text-sm text-smu-gray">
-            {s.rightHint}
-          </div>
+          {/* rightHint 고정 너비로 레이아웃 점프 방지 */}
+          <div className="text-sm text-smu-gray w-24 text-right">{s.rightHint}</div>
         </div>
 
+        {/* 탭 버튼 */}
         <div className="px-5 pt-4">
           <div className="flex flex-wrap gap-2">
             {slides.map((x, idx) => {
@@ -324,11 +337,7 @@ function TabsPreviewCarousel() {
                   {x.tab}
                   <span
                     className={`block h-[2px] rounded-full mt-1 transition
-                      ${
-                        isActive
-                          ? "bg-smu-neonlime"
-                          : "bg-transparent"
-                      }`}
+                      ${isActive ? "bg-smu-neonlime" : "bg-transparent"}`}
                   />
                 </button>
               );
@@ -336,28 +345,32 @@ function TabsPreviewCarousel() {
           </div>
         </div>
 
-        <div className="p-5">
-          <div className="flex items-center justify-between">
+        {/* ▼▼▼ 핵심: 고정 높이 + fade 전환 ▼▼▼ */}
+        <div
+          className="p-5 transition-opacity duration-150"
+          style={{ opacity: fading ? 0 : 1 }}
+        >
+          {/* 헤더 행 — 고정 높이로 배지 크기 차이 흡수 */}
+          <div className="flex items-center justify-between h-10">
             <div>
-              <div className="text-sm text-smu-gray">
-                {s.titleTop}
-              </div>
-              <div className="text-lg font-semibold text-smu-black">
+              <div className="text-sm text-smu-gray leading-none">{s.titleTop}</div>
+              <div className="text-lg font-semibold text-smu-black leading-snug mt-0.5">
                 {s.title}
               </div>
             </div>
-
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-smu-neonlime text-smu-black">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-smu-neonlime text-smu-black whitespace-nowrap">
               {s.badge}
             </span>
           </div>
 
-          <div className="mt-4 rounded-xl border border-gray-100 bg-smu-base p-4">
+          {/* 콘텐츠 박스 — 고정 높이 */}
+          <div
+            className="mt-4 rounded-xl border border-gray-100 bg-smu-base p-4 overflow-hidden"
+            style={{ height: "260px" }}
+          >
             {s.contentType === "problem" && (
               <>
-                <div className="text-xs text-smu-gray mb-2">
-                  example.js
-                </div>
+                <div className="text-xs text-smu-gray mb-2">example.js</div>
                 <pre className="text-[13px] leading-relaxed text-smu-navy whitespace-pre-wrap">
 {`function bfs(grid) {
   const q = [[0,0]];
@@ -382,33 +395,22 @@ function TabsPreviewCarousel() {
             )}
 
             {s.contentType === "submissions" && (
-              <div className="space-y-3">
-                <SubmissionRow
-                  status="Accepted"
-                  meta="JavaScript · 1.6s · 42MB"
-                />
-                <SubmissionRow
-                  status="Wrong Answer"
-                  meta="JavaScript · 1.8s · 45MB"
-                />
+              <div className="space-y-2">
+                <SubmissionRow status="Accepted" meta="JavaScript · 1.6s · 42MB" />
+                <SubmissionRow status="Wrong Answer" meta="JavaScript · 1.8s · 45MB" />
                 <SubmissionRow status="Accepted" meta="Python · 2.2s · 78MB" />
               </div>
             )}
 
             {s.contentType === "solution" && (
               <>
-                <div className="text-xs text-smu-gray mb-2">
-                  핵심 아이디어
-                </div>
+                <div className="text-xs text-smu-gray mb-2">핵심 아이디어</div>
                 <ul className="text-[13px] text-smu-navy leading-relaxed list-disc pl-5 space-y-1">
                   <li>visited로 중복 방문 방지</li>
                   <li>큐 기반 BFS로 최단 흐름 유지</li>
-                  <li>경계 조건(벽/범위) 체크</li>
                 </ul>
                 <div className="mt-3 rounded-lg bg-white border border-gray-100 p-3">
-                  <div className="text-xs text-smu-gray">
-                    pseudo
-                  </div>
+                  <div className="text-xs text-smu-gray">pseudo</div>
                   <pre className="text-[12px] text-smu-navy whitespace-pre-wrap">
 {`push(start)
 while queue:
@@ -422,29 +424,21 @@ while queue:
             )}
 
             {s.contentType === "discuss" && (
-              <div className="space-y-3">
-                <DiscussRow
-                  title="q.shift() 느린데 최적화 방법?"
-                  meta="댓글 12 · 3분 전"
-                />
-                <DiscussRow
-                  title="visited를 Set으로 쓰는 게 나을까요?"
-                  meta="댓글 7 · 12분 전"
-                />
-                <DiscussRow
-                  title="Python deque vs list 성능 차이"
-                  meta="댓글 19 · 1시간 전"
-                />
+              <div className="space-y-2">
+                <DiscussRow title="q.shift() 느린데 최적화 방법?" meta="댓글 12 · 3분 전" />
+                <DiscussRow title="visited를 Set으로 쓰는 게 나을까요?" meta="댓글 7 · 12분 전" />
+                <DiscussRow title="Python deque vs list 성능 차이" meta="댓글 19 · 1시간 전" />
               </div>
             )}
           </div>
 
-          <div className="mt-4 flex gap-3">
+          {/* 하단 칩 행 — 고정 높이 */}
+          <div className="mt-4 flex gap-3 h-14">
             <MiniChip label="채점 서버" value="Healthy" strong />
             <MiniChip label="최근 결과" value="Accepted" />
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-2 flex justify-end">
             <Link
               to="/problems"
               className="text-sm font-semibold text-smu-navy hover:text-smu-black transition"
@@ -617,7 +611,7 @@ function FeatureCard({ title, desc }) {
 
 function MiniChip({ label, value, strong }) {
   return (
-    <div className="rounded-xl bg-white border border-gray-100 px-4 py-3">
+    <div className="rounded-xl bg-white border border-gray-100 px-4 py-2">
       <div className="text-xs text-smu-gray">{label}</div>
       <div
         className={`mt-1 text-sm font-semibold ${

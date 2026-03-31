@@ -11,8 +11,8 @@ export default function TopBar({ onRun, onSubmit, isBusy, busyLabel }) {
     <header className="w-full border-b border-smu-gray/20 bg-white">
       <div className="h-[56px] px-4 flex items-center gap-0">
         {/* Logo */}
-        <button className="h-10 px-4 rounded-lg border border-smu-gray/25 bg-smu-base text-sm font-semibold text-smu-black hover:bg-white transition-colors">
-          로고 (현재 이 줄 아무 기능 없음)
+        <button className="h-10 px-4 rounded-lg border border-smu-neonlime/50 text-sm font-semibold text-smu-black hover:bg-white transition-colors">
+          SOLVE ME UP
         </button>
 
         <div className="flex-1" />
@@ -81,7 +81,7 @@ function TopBarMenuButton({ children, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="h-10 px-4 text-sm font-semibold text-smu-navy transition-colors hover:bg-smu-base"
+      className="h-10 px-4 text-sm font-semibold bg-smu-base text-smu-gray transition-colors"
     >
       {children}
     </button>

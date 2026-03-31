@@ -41,14 +41,14 @@ export default function CommentForm({
       <input
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="flex-1 border rounded p-2"
+        className="flex-1 bg-smu-base rounded p-2"
         placeholder={placeholder ?? (parentId ? "대댓글을 입력하세요" : "댓글을 입력하세요")}
         disabled={isSubmitting}
         autoFocus={autoFocus}
       />
       <button
         type="submit"
-        className="px-3 py-2 bg-black text-white rounded disabled:opacity-50"
+        className="px-3 py-2 bg-smu-navy text-white rounded disabled:opacity-50"
         disabled={isSubmitting}
       >
         {isSubmitting ? "작성 중…" : "작성"}

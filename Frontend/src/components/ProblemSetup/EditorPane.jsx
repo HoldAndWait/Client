@@ -20,8 +20,8 @@ export default function EditorPane({
             className="text-sm border rounded px-2 py-1"
           >
             <option value="java">Java 11</option>
-            <option value="python">Python 3</option>
-            <option value="javascript">JavaScript</option>
+            <option value="python" disabled>Python 3</option>
+            <option value="javascript" disabled>JavaScript</option>
           </select>
 
         </div>
