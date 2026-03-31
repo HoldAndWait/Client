@@ -19,7 +19,7 @@ export default function ProblemStatement() {
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <MetaPill label="시간 제한" value="1초" />
           <MetaPill label="메모리 제한" value="128MB" />
-          <MetaPill label="정답률" value="32.49%" />
+          <MetaPill label="정답률" value="84.61%" />
         </div>
       </header>
 
