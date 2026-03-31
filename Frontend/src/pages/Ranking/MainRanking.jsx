@@ -10,7 +10,7 @@ export default function Ranking() {
     { rank: 4, name: "choi", score: 1270725, delta: +12 },
     { rank: 5, name: "이상한나라의솜사탕", score: 1260725, delta: -10 },
     { rank: 6, name: "레인보우샤베트", score: 1250725, delta: +5 },
-    { rank: 1329, name: "zelsa", score: 300725, delta: 0 },
+    { rank: 21, name: "ME", score: 300725, delta: 0 },
   ];
 
   const top3 = useMemo(() => rankingData.slice(0, 3), [rankingData]);
@@ -22,7 +22,7 @@ export default function Ranking() {
   }, [query, rankingData]);
 
   // “내 랭킹”은 아직 로그인 연동 안 해도 UI만 보여주기(더미)
-  const my = { rank: 1329, name: "zelsa", score: 300725, delta: 0 };
+  const my = { rank: 1329, name: "", score: 300725, delta: 0 };
 
   return (
     <div className="w-full bg-smu-base min-h-screen text-smu-black">
@@ -97,7 +97,7 @@ export default function Ranking() {
                   내 랭킹
                 </div>
                 <div className="text-lg font-extrabold text-smu-black">
-                  {my.rank}위 · {my.name}
+                  {my.rank}위 {/*· {my.name}*/}
                 </div>
               </div>
             </div>
