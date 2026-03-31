@@ -22,7 +22,7 @@ export default function Ranking() {
   }, [query, rankingData]);
 
   // “내 랭킹”은 아직 로그인 연동 안 해도 UI만 보여주기(더미)
-  const my = { rank: 1329, name: "", score: 300725, delta: 0 };
+  const my = { rank: 21, name: "", score: 300725, delta: 0 };
 
   return (
     <div className="w-full bg-smu-base min-h-screen text-smu-black">
