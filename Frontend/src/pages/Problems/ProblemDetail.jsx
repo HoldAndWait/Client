@@ -18,16 +18,32 @@ export default function ProblemDetail() {
   //const problemId = Number(params.problemId ?? 1);
 
   // EditorPane와 맞춰서: language는 "java/python/javascript" 같은 값 권장
-  // (너는 현재 "JAVA"로 잡아놨는데 EditorPane select 값이 "java"라면 mismatch 날 수 있음)
-  const [language, setLanguage] = useState("java");
-
-  const [sourceCode, setSourceCode] = useState(
-    `class Solution {
-  public String solution(int A, int B) {
+  // ("JAVA"로 잡아놨는데 EditorPane select 값이 "java"라면 mismatch 날 수 있음)
+  const CODE_TEMPLATES = {
+    java: `class Solution {
+    public String solution(int A, int B) {
+      return "";
+    }
+  }`,
+    python: `def solution(A, B):
+      return ""`,
+    javascript: `function solution(A, B) {
     return "";
-  }
-}`
-  );
+  }`,
+  };
+
+  const [codes, setCodes] = useState({ ...CODE_TEMPLATES });
+  const handleChangeLang = (newLang) => {
+    setLanguage(newLang);
+    setSourceCode(CODE_TEMPLATES[newLang]);
+  };
+// 언어바뀌어도 저장
+  const handleChangeCode = (newCode) => {
+    setCodes((prev) => ({ ...prev, [language]: newCode }));
+  };
+
+  const [language, setLanguage] = useState("java");
+  const [sourceCode, setSourceCode] = useState(CODE_TEMPLATES["java"]);
 
 
   const [runId, setRunId] = useState(null);
@@ -175,9 +191,9 @@ export default function ProblemDetail() {
           <div className="flex-1 border-b overflow-hidden">
             <EditorPane
               lang={language}
-              onChangeLang={setLanguage}
-              code={sourceCode}
-              onChangeCode={setSourceCode}
+              onChangeLang={handleChangeLang}
+              code={codes[language]}  
+              onChangeCode={handleChangeCode}
             />
           </div>
 
