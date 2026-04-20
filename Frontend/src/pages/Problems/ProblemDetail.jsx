@@ -35,7 +35,6 @@ export default function ProblemDetail() {
   const [codes, setCodes] = useState({ ...CODE_TEMPLATES });
   const handleChangeLang = (newLang) => {
     setLanguage(newLang);
-    setSourceCode(CODE_TEMPLATES[newLang]);
   };
 // 언어바뀌어도 저장
   const handleChangeCode = (newCode) => {
@@ -43,8 +42,6 @@ export default function ProblemDetail() {
   };
 
   const [language, setLanguage] = useState("java");
-  const [sourceCode, setSourceCode] = useState(CODE_TEMPLATES["java"]);
-
 
   const [runId, setRunId] = useState(null);
   const [submissionId, setSubmissionId] = useState(null);
@@ -123,7 +120,7 @@ export default function ProblemDetail() {
     setSubmissionId(null);
     setRunId(null);
 
-    const res = await fakeRunStart({sourceCode});
+    const res = await fakeRunStart({sourceCode : codes[language]});
     setRunId(res.runId);
   };
 
@@ -138,7 +135,7 @@ export default function ProblemDetail() {
     try {
       const res = await submitSolution(problemId, {
         language: languageForServer, // 서버 enum으로
-        sourceCode,
+        sourceCode : codes[language],
       });
 
       const nextSubmissionId = res?.data?.submissionId;
