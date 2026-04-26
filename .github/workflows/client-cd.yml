@@ -39,12 +39,14 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_SSH_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY_B64 }}
+          GHCR_TOKEN: ${{ secrets.GHCR_DEPLOY_TOKEN }}
         run: |
           mkdir -p ~/.ssh
           echo "$DEPLOY_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 ${DEPLOY_USER}@${DEPLOY_HOST} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 ${DEPLOY_USER}@${DEPLOY_HOST} << EOF
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u ghlim00 --password-stdin
             cd /home/solvemeup/deploy
             docker compose pull frontend
             docker compose up -d frontend
@@ -57,7 +59,8 @@ jobs:
         run: |
           BRANCH="${GITHUB_REF_NAME}"
           SHORT_SHA="${GITHUB_SHA::7}"
-          MSG="✅ Frontend CD 성공\n- branch: ${BRANCH}\n- commit: ${SHORT_SHA}\n- actor: ${GITHUB_ACTOR}\n- repo: ${GITHUB_REPOSITORY}"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          MSG="✅ Frontend CD 성공\n- branch: ${BRANCH}\n- commit: ${SHORT_SHA}\n- message: ${COMMIT_MSG}\n- actor: ${GITHUB_ACTOR}\n- repo: ${GITHUB_REPOSITORY}"
           curl -H "Content-Type: application/json" \
                -d "{\"content\":\"${MSG}\"}" \
                "$DISCORD_WEBHOOK_URL"
