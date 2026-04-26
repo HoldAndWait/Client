@@ -227,6 +227,22 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <footer className="w-full border-t mt-10 py-6 text-sm text-gray-500">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center px-4 gap-3">
+          
+          <div>
+            © 2026 SolveMeUp. All rights reserved.
+          </div>
+
+          <div className="flex gap-4">
+            <a href="/" className="hover:text-gray-800">Home</a>
+            <a href="/about" className="hover:text-gray-800">About</a>
+            <a href="/contact" className="hover:text-gray-800">Contact</a>
+          </div>
+
+        </div>
+      </footer>
     </div>
   );
 }
