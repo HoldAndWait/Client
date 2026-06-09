@@ -18,8 +18,8 @@ export default function CommunityWritePage() {
 
   const submit = async () => {
     const body = {
-      title: title.trim() || "테스트 게시물 제목 입니다.",
-      content: content.trim() || "테스트 게시물 내용 입니다.",
+      title: title.trim(),
+      content: content.trim(),
     };
 
     if (!body.title || !body.content) {
@@ -34,7 +34,7 @@ export default function CommunityWritePage() {
 
     try {
       // 등록 요청
-      const res = await api.post("/api/posts", body);
+      await api.post("/api/posts", body);
       //setLastPostRes({ ok: true, status: res.status, data: res.data, sentBody: body });
       navigate("/community");
     } catch (err) {
@@ -47,28 +47,6 @@ export default function CommunityWritePage() {
       );
     } finally { // 요청 종료: 로딩 OFF
       setIsSubmitting(false);
-    }
-  };
-
-  const refetch = async () => {
-    //setIsLoadingGet(true);
-    setErrorMsg("");
-    //setLastGetRes(null);
-
-    try {
-      const res = await api.get("/api/posts");
-      //setLastGetRes({ ok: true, status: res.status, data: res.data });
-      alert("GET 성공. 아래 응답 확인!");
-    } catch (err) {
-      const status = err?.response?.status;
-      const data = err?.response?.data;
-
-      setErrorMsg(
-        `GET 실패 (status=${status ?? "?"})\n` +
-          (data?.message || data?.error || JSON.stringify(data || {}, null, 2) || err.message)
-      );
-    } finally {
-      //setIsLoadingGet(false);
     }
   };
 

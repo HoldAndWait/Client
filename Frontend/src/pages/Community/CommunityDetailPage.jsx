@@ -424,7 +424,6 @@ export default function CommunityDetailPage() {
   const [post, setPost] = useState(null);
   const [errMsg, setErrMsg] = useState("");
   const [debug, setDebug] = useState("INIT");
-  const [commentText, setCommentText] = useState("");
   const abortRef = useRef(null);
   const [me, setMe] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -439,7 +438,7 @@ export default function CommunityDetailPage() {
         if (cancelled) return;
         const meObj = res.data?.data ?? res.data ?? null;
         setMe(meObj);
-      } catch (e) {
+      } catch {
         if (cancelled) return;
         setMe(null);
       }
@@ -481,7 +480,7 @@ export default function CommunityDetailPage() {
     return () => { controller.abort(); };
   }, [postId]);
 
-  const commentCount = useMemo(() => (post?.comments?.length ?? 0), [post]);
+  const commentCount = post?.commentCount ?? 0;
 
   const isMine = useMemo(() => {
     const myId = me?.id ?? me?.userId;
@@ -717,6 +716,7 @@ export default function CommunityDetailPage() {
               postId={postId}
               comments={post?.comments ?? []}
               onRefreshPost={fetchPost}
+              currentUserId={me?.id ?? me?.userId}
             />
           </div>
         </div>

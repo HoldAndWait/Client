@@ -127,9 +127,68 @@ function normalizeListResponse(data) {
   return [];
 }
 
+function mapPost(p) {
+  return {
+    id: String(p.id ?? p.postId ?? ""),
+    title: p.title ?? "",
+    content: p.content ?? "",
+    author:
+      typeof p.author === "string"
+        ? p.author
+        : (p.author?.nickname ??
+            p.authorName ??
+            p.user?.nickname ??
+            p.writer?.nickname ??
+            "unknown"),
+    createdAt: toYmd(p.createdAt ?? p.created_at ?? p.createdDate ?? p.created_date),
+    likeCount: p.likeCount ?? p.like_count ?? p.likes ?? 0,
+    commentCount: p.commentCount ?? p.comment_count ?? p.comments ?? 0,
+  };
+}
+
 function toYmd(createdAtLike) {
   const s = String(createdAtLike || "");
   return s.length >= 10 ? s.slice(0, 10) : s;
+}
+
+async function fetchAllPosts(signal) {
+  const posts = [];
+  let lastId = null;
+  let hasNext = true;
+
+  while (hasNext) {
+    const res = await api.get("/api/posts", {
+      params: { size: 100, ...(lastId == null ? {} : { lastId }) },
+      signal,
+    });
+    const page = res.data ?? {};
+    posts.push(...normalizeListResponse(page));
+    hasNext = page.hasNext === true;
+    lastId = page.lastId ?? null;
+
+    if (hasNext && lastId == null) break;
+  }
+
+  return posts;
+}
+
+async function searchAllPosts(keyword, signal) {
+  const posts = [];
+  let page = 0;
+  let totalPages = 1;
+
+  while (page < totalPages) {
+    const res = await api.get("/api/posts/search", {
+      params: { keyword, page, size: 100 },
+      signal,
+    });
+    const result = res.data ?? {};
+    posts.push(...normalizeListResponse(result));
+    totalPages = result.totalPages ?? 0;
+    page += 1;
+  }
+
+  return posts;
 }
 
 export default function CommunityListPage() {
@@ -141,61 +200,42 @@ export default function CommunityListPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
+    const keyword = q.trim();
+    const delay = keyword ? 300 : 0;
 
-    (async () => {
+    const timer = window.setTimeout(async () => {
       try {
         setLoading(true);
         setErrorMsg("");
 
-        const res = await api.get("/api/posts");
-        if (cancelled) return;
+        const list = keyword
+          ? await searchAllPosts(keyword, controller.signal)
+          : await fetchAllPosts(controller.signal);
 
-        const list = normalizeListResponse(res.data);
-
-        const mapped = list.map((p) => ({
-          id: String(p.id ?? p.postId ?? ""),
-          title: p.title ?? "",
-          content: p.content ?? "",
-          author:
-            typeof p.author === "string"
-              ? p.author
-              : (p.author?.nickname ??
-                  p.user?.nickname ??
-                  p.writer?.nickname ??
-                  "unknown"),
-          createdAt: toYmd(p.createdAt ?? p.created_at ?? p.createdDate ?? p.created_date),
-          likeCount: p.likeCount ?? p.like_count ?? p.likes ?? 0,
-          commentCount: p.commentCount ?? p.comment_count ?? p.comments ?? 0,
-        }));
-
-        const safe = mapped.filter((p) => p.id);
+        const safe = list.map(mapPost).filter((p) => p.id);
         setPosts(safe);
       } catch (e) {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
         const status = e?.response?.status;
         if (status === 401) setErrorMsg("로그인이 필요합니다.");
         else if (status === 403) setErrorMsg("권한이 없습니다.");
         else setErrorMsg("게시글을 불러오지 못했습니다.");
         setPosts([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
-    })();
+    }, delay);
 
-    return () => { cancelled = true; };
-  }, []);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [q]);
 
   const filtered = useMemo(() => {
-    const keyword = q.trim().toLowerCase();
-    if (!keyword) return posts;
-    return posts.filter((p) => {
-      const t = String(p.title || "").toLowerCase();
-      const c = String(p.content || "").toLowerCase();
-      const a = String(p.author || "").toLowerCase();
-      return t.includes(keyword) || c.includes(keyword) || a.includes(keyword);
-    });
-  }, [posts, q]);
+    return posts;
+  }, [posts]);
 
   const syncOnePost = async (postId) => {
     const res = await api.get(`/api/posts/${postId}`);
@@ -213,7 +253,7 @@ export default function CommunityListPage() {
     try {
       await api.post(`/api/posts/${postId}/likes`);
       await syncOnePost(postId);
-    } catch (e) {
+    } catch {
       alert("추천 실패");
     }
   };

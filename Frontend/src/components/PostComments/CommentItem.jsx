@@ -3,8 +3,13 @@ import api from "@api/api.js";
 import CommentForm from "./CommentForm";
 import ReplyList from "./ReplyList";
 
-export default function CommentItem({ comment, postId, onRefresh, depth = 1 }) {
+export default function CommentItem({ comment, postId, onRefresh, currentUserId, depth = 1 }) {
   const commentId = comment?.id;
+  const authorId = comment?.author?.id ?? comment?.authorId;
+  const isMine =
+    currentUserId != null &&
+    authorId != null &&
+    String(currentUserId) === String(authorId);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [errMsg, setErrMsg] = useState("");
@@ -58,14 +63,16 @@ export default function CommentItem({ comment, postId, onRefresh, depth = 1 }) {
       <div className="flex justify-between items-center">
         <span className="font-semibold">{nickname}</span>
 
-        <button
-          onClick={deleteComment}
-          className="text-red-500 text-sm disabled:opacity-50"
-          disabled={isDeleting}
-          type="button"
-        >
-          {isDeleting ? "삭제 중…" : "삭제"}
-        </button>
+        {isMine && (
+          <button
+            onClick={deleteComment}
+            className="text-red-500 text-sm disabled:opacity-50"
+            disabled={isDeleting}
+            type="button"
+          >
+            {isDeleting ? "삭제 중…" : "삭제"}
+          </button>
+        )}
       </div>
 
       <p className="my-2 whitespace-pre-wrap break-words">{comment?.content ?? ""}</p>
@@ -115,6 +122,7 @@ export default function CommentItem({ comment, postId, onRefresh, depth = 1 }) {
           replies={comment?.replies ?? []}
           postId={postId}
           onRefresh={onRefresh}
+          currentUserId={currentUserId}
           parentId={commentId}
         />
       )}
