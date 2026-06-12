@@ -52,24 +52,27 @@ const Navbar = () => {
           {[
             { to: "/problems", label: "문제" },
             { to: "/ranking", label: "랭킹" },
-            { to: "/archive", label: "아카이브" },
+            { to: "/archive/", label: "아카이브", external: true },
             { to: "/community", label: "커뮤니티" },
-          ].map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`
+          ].map((item) => {
+            const className = `
                 px-3 py-2 rounded-xl text-sm font-semibold transition
                 ${
                   isActive(item.to)
                     ? "bg-smu-base text-smu-black"
                     : "text-smu-navy hover:bg-smu-base hover:text-smu-black"
                 }
-              `}
-            >
-              {item.label}
-            </Link>
-          ))}
+              `;
+            return item.external ? (
+              <a key={item.to} href={item.to} className={className}>
+                {item.label}
+              </a>
+            ) : (
+              <Link key={item.to} to={item.to} className={className}>
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
 
         {/* ===== Auth Area ===== */}
@@ -130,24 +133,27 @@ const Navbar = () => {
           {[
             { to: "/problems", label: "문제" },
             { to: "/ranking", label: "랭킹" },
-            { to: "/archive", label: "아카이브" },
+            { to: "/archive/", label: "아카이브", external: true },
             { to: "/community", label: "커뮤니티" },
-          ].map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`
+          ].map((item) => {
+            const className = `
                 text-sm font-semibold px-2 py-2 rounded-xl transition
                 ${
                   isActive(item.to)
                     ? "bg-smu-base text-smu-black"
                     : "text-smu-navy hover:bg-smu-base"
                 }
-              `}
-            >
-              {item.label}
-            </Link>
-          ))}
+              `;
+            return item.external ? (
+              <a key={item.to} href={item.to} className={className}>
+                {item.label}
+              </a>
+            ) : (
+              <Link key={item.to} to={item.to} className={className}>
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </nav>
