@@ -1,7 +1,6 @@
 import MainLayout from "@layout/index";
 import HomePage from "@pages/Home";
 import RankingPage from "@pages/Ranking/MainRanking";
-import ArchivePage from "@pages/ArchivePage/MainArchive";
 import CommunityListPage from "@pages/Community/CommunityListPage";
 import CommunityWritePage from "@pages/Community/CommunityWritePage";
 import CommunityEditPage from "@pages/Community/CommunityEditPage";
@@ -51,10 +50,6 @@ const routerInfo = [
       {
         path: "problems/1/detail",
         element: <ProblemDetailPage />,
-      },
-      {
-        path: "archive",
-        element: <ArchivePage/>,
       },
       {
         path: "mypage",
