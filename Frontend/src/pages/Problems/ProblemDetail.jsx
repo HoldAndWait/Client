@@ -13,9 +13,8 @@ import { fakeRunStart, fakeRunStatus } from "@api/fakeJudge";
 import useJudgePolling from "@hooks/useJudgePolling";
 
 export default function ProblemDetail() {
-  const problemId = 2; //임시
   const params = useParams();
-  //const problemId = Number(params.problemId ?? 1);
+  const problemId = Number(params.problemId);
 
   // EditorPane와 맞춰서: language는 "java/python/javascript" 같은 값 권장
   // ("JAVA"로 잡아놨는데 EditorPane select 값이 "java"라면 mismatch 날 수 있음)

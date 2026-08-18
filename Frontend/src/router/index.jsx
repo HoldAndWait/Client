@@ -48,7 +48,7 @@ const routerInfo = [
         element: <ProblemListPage />,
       },
       {
-        path: "problems/1/detail",
+        path: "problems/:problemId/detail",
         element: <ProblemDetailPage />,
       },
       {
