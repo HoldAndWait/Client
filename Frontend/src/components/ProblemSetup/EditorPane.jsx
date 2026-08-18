@@ -21,7 +21,7 @@ export default function EditorPane({
           >
             <option value="java">Java 11</option>
             <option value="python">Python 3</option>
-            <option value="javascript">JavaScript</option>
+            <option value="cpp">C++17</option>
           </select>
 
         </div>
