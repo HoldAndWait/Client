@@ -1,52 +1,115 @@
-export default function ProblemStatement() {
+import { useEffect, useState } from "react";
+import api from "@api/api";
+
+function formatTimeLimit(millis) {
+  if (millis == null) return "-";
+  return millis % 1000 === 0 ? `${millis / 1000}초` : `${millis}ms`;
+}
+
+function formatMemoryLimit(kilobytes) {
+  if (kilobytes == null) return "-";
+  return `${Math.round(kilobytes / 1024)}MB`;
+}
+
+export default function ProblemStatement({ problemId }) {
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (!problemId) return;
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+        const res = await api.get(`/api/problems/${problemId}`, {
+          signal: controller.signal,
+        });
+        setProblem(res.data);
+      } catch (e) {
+        if (e?.name === "CanceledError" || controller.signal.aborted) return;
+        setErrorMsg("문제를 불러오지 못했습니다.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [problemId]);
+
+  if (loading) {
+    return <div className="py-10 text-center text-smu-gray">불러오는 중...</div>;
+  }
+
+  if (errorMsg || !problem) {
+    return (
+      <div className="py-10 text-center text-red-500 font-semibold">
+        {errorMsg || "문제를 찾을 수 없습니다."}
+      </div>
+    );
+  }
+
+  const constraintLines = (problem.constraints || "")
+    .split("\n")
+    .filter((line) => line.trim().length > 0);
+
   return (
     <div className="space-y-5">
       {/* Header */}
       <header className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-xl font-bold tracking-tight text-smu-black">
-            <span className="text-smu-gray font-semibold">#1330</span>{" "}
-            두 수 비교하기
+            <span className="text-smu-gray font-semibold">#{problem.id}</span>{" "}
+            {problem.title}
           </h1>
-
-          {/* 상태/난이도 뱃지 자리 */}
-          {/* <span className="shrink-0 rounded-full border border-smu-gray/30 bg-smu-base px-2 py-1 text-xs text-smu-navy">
-            Bronze
-          </span> */}
         </div>
 
         {/* meta badges */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <MetaPill label="시간 제한" value="1초" />
-          <MetaPill label="메모리 제한" value="128MB" />
-          <MetaPill label="정답률" value="84.61%" />
+          <MetaPill label="난이도" value={`Lv.${problem.difficulty}`} />
+          <MetaPill label="시간 제한" value={formatTimeLimit(problem.timeLimitMillis)} />
+          <MetaPill label="메모리 제한" value={formatMemoryLimit(problem.memoryLimitKilobytes)} />
+          <MetaPill label="맞힌 사람" value={`${problem.solvedUserCount}명`} />
         </div>
       </header>
 
       <Divider />
 
       <Section title="문제 설명">
-        <p className="text-sm leading-6 text-smu-black">
-          두 정수 A와 B가 주어졌을 때, A와 B를 비교하는 프로그램을 작성하시오.
+        <p className="text-sm leading-6 text-smu-black whitespace-pre-wrap">
+          {problem.description}
         </p>
       </Section>
 
-      <Section title="제한 사항">
-        <ul className="list-disc pl-5 text-sm leading-6 text-smu-black">
-          <li>A, B &lt; 10,000</li>
-        </ul>
-      </Section>
+      {constraintLines.length > 0 && (
+        <Section title="제한 사항">
+          <ul className="list-disc pl-5 text-sm leading-6 text-smu-black">
+            {constraintLines.map((line, idx) => (
+              <li key={idx}>{line}</li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
-      <Section title="예제">
-        <div className="space-y-3">
-          <ExampleCard title="테스트 케이스 1" input="A = 1, B = 2" output='"<"' />
-          <ExampleCard title="테스트 케이스 2" input="A = 2, B = 1" output='">"' />
-          <ExampleCard title="테스트 케이스 3" input="A = 1, B = 1" output='"=="' />
-        </div>
-      </Section>
+      {problem.sampleCases?.length > 0 && (
+        <Section title="예제">
+          <div className="space-y-3">
+            {problem.sampleCases.map((sc, idx) => (
+              <ExampleCard
+                key={sc.orderIndex ?? idx}
+                title={`테스트 케이스 ${idx + 1}`}
+                input={sc.arguments}
+                output={sc.expectedOutput}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
 
       <footer className="pt-1 text-xs text-smu-gray">
-        출제자: <span className="text-smu-navy">FickleBoBo</span>
+        출제자: <span className="text-smu-navy">{problem.author?.nickname}</span>
       </footer>
     </div>
   );
@@ -94,8 +157,8 @@ function ExampleCard({ title, input, output }) {
       </div>
 
       <div className="mt-3 space-y-2 text-sm">
-        <Row label="Input" value={input} />
-        <Row label="Output" value={output} />
+        <Row label="Input" value={input || "-"} />
+        <Row label="Output" value={output || "-"} />
       </div>
     </div>
   );

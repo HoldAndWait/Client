@@ -82,7 +82,7 @@ const ProblemList = () => {
                     {/* 제목 */}
                     <td className="px-4 py-3">
                       <Link
-                        to={`/problems/1/detail`}
+                        to={`/problems/${p.id}/detail`}
                         className="font-semibold text-smu-navy group-hover:text-smu-black"
                       >
                         {p.title}

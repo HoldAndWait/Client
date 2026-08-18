@@ -11,15 +11,15 @@ const tabs = [
   { key: "discussion", label: "토론" },
 ];
 
-export default function ProblemPane() {
+export default function ProblemPane({ problemId }) {
   const [active, setActive] = useState("problem");
 
   const Content = useMemo(() => {
-    if (active === "problem") return <ProblemStatement />;
+    if (active === "problem") return <ProblemStatement problemId={problemId} />;
     if (active === "submissions") return <SubmissionsTab />;
     if (active === "solutions") return <SolutionsTab />;
     return <DiscussionTab />;
-  }, [active]);
+  }, [active, problemId]);
 
   return (
     <div className="h-full flex flex-col">
