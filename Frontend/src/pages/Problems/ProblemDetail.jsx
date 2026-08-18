@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { submitSolution } from "@api/problem"; 
+import { submitSolution } from "@api/problem";
 
 import TopBar from "@components/ProblemSetup/TopBar";
 import ProblemPane from "@components/ProblemSetup/ProblemPane";
@@ -11,33 +11,35 @@ import api from "@api/api";
 // 여기 지워야 함
 import { fakeRunStart, fakeRunStatus } from "@api/fakeJudge";
 import useJudgePolling from "@hooks/useJudgePolling";
+import useProblem from "@hooks/useProblem";
+import { buildCodeTemplates } from "@utils/codeTemplate";
 
 export default function ProblemDetail() {
   const params = useParams();
   const problemId = Number(params.problemId);
 
-  // EditorPane와 맞춰서: language는 "java/python/javascript" 같은 값 권장
-  // ("JAVA"로 잡아놨는데 EditorPane select 값이 "java"라면 mismatch 날 수 있음)
-  const CODE_TEMPLATES = {
-    java: `class Solution {
-    public String solution(int A, int B) {
-      return "";
-    }
-  }`,
-    python: `def solution(A, B):
-      return ""`,
-    javascript: `function solution(A, B) {
-    return "";
-  }`,
-  };
+  const { problem } = useProblem(problemId);
 
-  const [codes, setCodes] = useState({ ...CODE_TEMPLATES });
+  // 문제마다 functionName/parameters/returnType이 달라서 문제 로드 후에만 만들 수 있음
+  const codeTemplates = useMemo(() => buildCodeTemplates(problem), [problem]);
+
+  // 사용자가 직접 고친 코드만 여기 저장하고, 안 고친 언어는 템플릿을 그대로 보여줌
+  const [edits, setEdits] = useState({});
+  const codes = useMemo(
+    () => ({
+      java: edits.java ?? codeTemplates?.java ?? "",
+      python: edits.python ?? codeTemplates?.python ?? "",
+      cpp: edits.cpp ?? codeTemplates?.cpp ?? "",
+    }),
+    [edits, codeTemplates],
+  );
+
   const handleChangeLang = (newLang) => {
     setLanguage(newLang);
   };
 // 언어바뀌어도 저장
   const handleChangeCode = (newCode) => {
-    setCodes((prev) => ({ ...prev, [language]: newCode }));
+    setEdits((prev) => ({ ...prev, [language]: newCode }));
   };
 
   const [language, setLanguage] = useState("java");
@@ -45,12 +47,12 @@ export default function ProblemDetail() {
   const [runId, setRunId] = useState(null);
   const [submissionId, setSubmissionId] = useState(null);
 
-  // 백엔드 enum이 JAVA/PYTHON/JAVASCRIPT면 여기서 매핑해서 보냄
+  // 백엔드 Language enum(smu-core-api)은 JAVA/PYTHON/CPP만 지원함(JAVASCRIPT 없음)
   const languageForServer = useMemo(() => {
     const map = {
       java: "JAVA",
       python: "PYTHON",
-      javascript: "JAVASCRIPT",
+      cpp: "CPP",
     };
     return map[language] ?? "JAVA";
   }, [language]);
@@ -115,7 +117,7 @@ export default function ProblemDetail() {
   // };
   //fakeJudge용
   const onClickRun = async () => {
-    if (isBusy) return;
+    if (isBusy || !problem) return;
     setSubmissionId(null);
     setRunId(null);
 
@@ -125,7 +127,7 @@ export default function ProblemDetail() {
 
 
   const onClickSubmit = async () => {
-    if (isBusy) return;
+    if (isBusy || !problem) return;
 
     // 이전 결과 초기화(선택)
     setRunId(null);

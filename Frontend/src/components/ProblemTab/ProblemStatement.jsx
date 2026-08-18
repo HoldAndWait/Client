@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import api from "@api/api";
+import useProblem from "@hooks/useProblem";
 
 function formatTimeLimit(millis) {
   if (millis == null) return "-";
@@ -12,32 +11,7 @@ function formatMemoryLimit(kilobytes) {
 }
 
 export default function ProblemStatement({ problemId }) {
-  const [problem, setProblem] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
-
-  useEffect(() => {
-    if (!problemId) return;
-    const controller = new AbortController();
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const res = await api.get(`/api/problems/${problemId}`, {
-          signal: controller.signal,
-        });
-        setProblem(res.data);
-      } catch (e) {
-        if (e?.name === "CanceledError" || controller.signal.aborted) return;
-        setErrorMsg("문제를 불러오지 못했습니다.");
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    })();
-
-    return () => controller.abort();
-  }, [problemId]);
+  const { problem, loading, errorMsg } = useProblem(problemId);
 
   if (loading) {
     return <div className="py-10 text-center text-smu-gray">불러오는 중...</div>;
